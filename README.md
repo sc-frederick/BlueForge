@@ -1,4 +1,4 @@
-# finpilot
+# BlueForge
 
 A template for building custom bootc operating system images based on the lessons from [Universal Blue](https://universal-blue.org/) and [Bluefin](https://projectbluefin.io). It is designed to be used manually, but is optimized to be bootstraped by GitHub Copilot. After set up you'll have your own custom Linux. 
 
@@ -9,6 +9,27 @@ This template uses the **multi-stage build architecture** from , combining resou
  Instead, you create your own OS repository based on this template, allowing full customization while leveraging Bluefin's robust build system and shared components.
 
 > Be the one who moves, not the one who is moved.
+
+## What Makes This BlueForge Different?
+
+This image is based on `ghcr.io/ublue-os/silverblue-main:latest` and keeps the Bluefin-style multi-stage architecture while pre-wiring practical defaults so a new repository can bootstrap quickly.
+
+### Added Packages (Build-time)
+- **System packages**: none added yet by default (template stays minimal)
+
+### Added Applications (Runtime)
+- **CLI Tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `starship`, `zoxide`, `htop`, `tmux` for productivity and day-one terminal workflows
+- **GUI Apps (Flatpak)**: Firefox, Thunderbird, GNOME utilities, Flatseal, Mission Center, Warehouse, and selected Universal Blue tools for a complete first-boot desktop
+
+### Removed/Disabled
+- No core desktop components removed
+- Cosign signing and SBOM attestation stay disabled by default until you complete GitHub secret setup
+
+### Configuration Changes
+- Enables `podman.socket` during image build
+- Copies Bluefin shared `ujust` files and layers custom `ujust`, Brewfiles, and Flatpak preinstall manifests into the image
+
+*Last updated: 2026-02-16*
 
 ## Guided Copilot Mode
 
@@ -67,7 +88,7 @@ Click "Use this template" to create a new repository from this template.
 
 ### 2. Rename the Project
 
-Important: Change `finpilot` to your repository name in these 6 files:
+Important: Set the OS identity to your repository name (`blueforge` in this repo) in these 6 files:
 
 1. `Containerfile` (line 4): `# Name: your-repo-name`
 2. `Justfile` (line 1): `export image_name := env("IMAGE_NAME", "your-repo-name")`
@@ -76,14 +97,32 @@ Important: Change `finpilot` to your repository name in these 6 files:
 5. `custom/ujust/README.md` (~line 175): `localhost/your-repo-name:stable`
 6. `.github/workflows/clean.yml` (line 23): `packages: your-repo-name`
 
-### 3. Enable GitHub Actions
+### 3. Enable GitHub Actions and Required Permissions
 
 - Go to the "Actions" tab in your repository
 - Click "I understand my workflows, go ahead and enable them"
+- Go to `Settings -> Actions -> General` and set **Workflow permissions** to **Read and write permissions**
+- Ensure **Allow GitHub Actions to create and approve pull requests** is enabled
 
 Your first build will start automatically! 
 
 Note: Image signing is disabled by default. Your images will build successfully without any signing keys. Once you're ready for production, see "Optional: Enable Image Signing" below.
+
+### 3.1 Verify Actions Are Enabled and Running
+
+After the first push, confirm workflows in GitHub:
+
+- `Build container image`
+- `Cleanup Old Images`
+- `Renovate`
+- Validation workflows (`Validate Brewfiles`, `Validate Flatpaks`, `Validate Justfiles`, `Validate Renovate Config`, `Validate Shell Scripts`)
+
+CLI verification (optional):
+
+```bash
+gh workflow list
+gh run list --limit 10
+```
 
 ### 4. Customize Your Image
 
@@ -133,7 +172,7 @@ Image signing is disabled by default to let you start building immediately. Howe
 - Required for some enterprise/security-focused deployments
 - Industry best practice for production images
 
-### Setup Instructions
+### Setup Instructions (Cosign + GitHub)
 
 1. Generate signing keys:
 ```bash
@@ -164,7 +203,14 @@ This creates two files:
    - Uncomment the steps to install Cosign and sign the image (remove the `#` from the beginning of each line in that section).
    - Commit and push the change
 
-5. Your next build will produce signed images!
+5. Run a new workflow and verify signed output:
+
+```bash
+gh workflow run build.yml
+gh run list --workflow "Build container image" --limit 5
+```
+
+6. Your next completed build will produce signed images.
 
 Important: Never commit `cosign.key` to the repository. It's already in `.gitignore`.
 

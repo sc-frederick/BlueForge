@@ -3,11 +3,12 @@
 ## Initial Setup
 
 ### 1. Rename Template
-- [ ] Update `finpilot` to your name in: Containerfile, Justfile, README.md, artifacthub-repo.yml
+- [x] Update `finpilot` to your repository name (`blueforge`) in: Containerfile, Justfile, README.md, artifacthub-repo.yml, custom/ujust/README.md, .github/workflows/clean.yml
 
 ### 2. Enable GitHub Actions
-- [ ] Settings → Actions → General → Enable workflows
-- [ ] Set "Read and write permissions"
+- [x] Settings → Actions → General → Enable workflows
+- [x] Set "Read and write permissions"
+- [x] Confirm active workflows via `gh workflow list`
 
 ### 3. First Push
 ```bash
@@ -29,5 +30,6 @@ sudo systemctl reboot
 cosign generate-key-pair
 # Add cosign.key to GitHub Secrets as SIGNING_SECRET
 # Uncomment signing in .github/workflows/build.yml
+# Trigger build: gh workflow run build.yml
+# Verify runs: gh run list --workflow "Build container image" --limit 5
 ```
-
