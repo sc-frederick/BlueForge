@@ -12,13 +12,13 @@ This template uses the **multi-stage build architecture** from , combining resou
 
 ## What Makes This BlueForge Different?
 
-This image is based on `ghcr.io/ublue-os/silverblue-main:latest` and keeps the Bluefin-style multi-stage architecture while pre-wiring practical defaults so a new repository can bootstrap quickly.
+This image is based on `ghcr.io/ublue-os/bluefin:stable` and keeps the Bluefin-style multi-stage architecture while pre-wiring practical defaults so a new repository can bootstrap quickly.
 
 ### Added Packages (Build-time)
-- **System packages**: none added yet by default (template stays minimal)
+- **System packages**: Ghostty (default terminal), Helium (`helium-bin`), and 1Password for secure sign-in/workflow setup
 
 ### Added Applications (Runtime)
-- **CLI Tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `starship`, `zoxide`, `htop`, `tmux` for productivity and day-one terminal workflows
+- **CLI Tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `nvm`, `claude-code`, `opencode`, `starship`, `zoxide`, `htop`, `tmux` for productivity and day-one terminal workflows
 - **GUI Apps (Flatpak)**: Firefox, Thunderbird, GNOME utilities, Flatseal, Mission Center, Warehouse, and selected Universal Blue tools for a complete first-boot desktop
 
 ### Removed/Disabled
@@ -29,7 +29,7 @@ This image is based on `ghcr.io/ublue-os/silverblue-main:latest` and keeps the B
 - Enables `podman.socket` during image build
 - Copies Bluefin shared `ujust` files and layers custom `ujust`, Brewfiles, and Flatpak preinstall manifests into the image
 
-*Last updated: 2026-02-16*
+*Last updated: 2026-02-17*
 
 ## Guided Copilot Mode
 

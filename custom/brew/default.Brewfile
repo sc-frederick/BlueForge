@@ -12,6 +12,14 @@ brew "rg"         # ripgrep - faster grep
 # Development tools
 brew "gh"         # GitHub CLI
 brew "git"        # Git version control
+brew "neovim"     # Neovim text editor
+brew "oven-sh/bun/bun" # JavaScript runtime and package manager
+brew "nvm"        # Node version manager
+
+# AI coding tools
+tap "anomalyco/tap"
+brew "anomalyco/tap/opencode" # OpenCode CLI assistant
+cask "claude-code" # Anthropic CLI assistant
 
 # Shell enhancements  
 brew "starship"   # Cross-shell prompt
