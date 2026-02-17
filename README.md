@@ -15,7 +15,7 @@ This image is based on `ghcr.io/ublue-os/bluefin:stable` and keeps the Bluefin-s
 - **Terminal behavior**: Ptyxis is removed, Ghostty is installed, and `xdg-terminal-exec` is pointed at Ghostty so "open terminal" flows behave cleanly
 
 ### Added Applications (Runtime)
-- **CLI Tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `nvm`, `claude-code`, `opencode`, `starship`, `zoxide`, `htop`, `tmux` for productivity and day-one terminal workflows
+- **CLI Tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `nvm`, `claude-code`, `opencode`, `starship`, `htop`, `tmux` for productivity and day-one terminal workflows
 - **GUI Apps (Flatpak)**: Thunderbird, GNOME utilities, Flatseal, Mission Center, Warehouse, and selected Universal Blue tools for a complete first-boot desktop
 
 ### Removed/Disabled

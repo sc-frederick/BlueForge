@@ -23,7 +23,6 @@ cask "claude-code" # Anthropic CLI assistant
 
 # Shell enhancements  
 brew "starship"   # Cross-shell prompt
-brew "zoxide"     # Smarter cd command
 
 # Utilities
 brew "htop"       # Interactive process viewer
