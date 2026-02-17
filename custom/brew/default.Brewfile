@@ -13,6 +13,7 @@ brew "rg"         # ripgrep - faster grep
 brew "gh"         # GitHub CLI
 brew "git"        # Git version control
 brew "neovim"     # Neovim text editor
+tap "oven-sh/bun"
 brew "oven-sh/bun/bun" # JavaScript runtime and package manager
 brew "nvm"        # Node version manager
 
@@ -25,5 +26,5 @@ cask "claude-code" # Anthropic CLI assistant
 brew "starship"   # Cross-shell prompt
 
 # Utilities
-brew "htop"       # Interactive process viewer
+brew "btop"       # Interactive process viewer
 brew "tmux"       # Terminal multiplexer
