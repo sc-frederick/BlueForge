@@ -15,7 +15,7 @@ Compared to stock Bluefin, this is the setup I want to live in every day.
 
 ### Added Applications (Runtime)
 
-- **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `nvm`, `opencode`, `claude-code`, `starship`, `htop`, `tmux`.
+- **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `nvm`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
 - **GUI apps (Flatpak)**: Thunderbird, GNOME utilities, Flatseal, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
 - **Why most apps stay runtime-managed**: faster iteration and easier updates without rebuilding the base image.
 

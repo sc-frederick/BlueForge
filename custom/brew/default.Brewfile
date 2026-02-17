@@ -25,5 +25,5 @@ cask "claude-code" # Anthropic CLI assistant
 brew "starship"   # Cross-shell prompt
 
 # Utilities
-brew "htop"       # Interactive process viewer
+brew "btop"       # Interactive process viewer
 brew "tmux"       # Terminal multiplexer
