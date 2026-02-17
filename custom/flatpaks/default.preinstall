@@ -4,9 +4,6 @@
 # See: https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-preinstall
 
 # Web Browsers
-[Flatpak Preinstall org.mozilla.firefox]
-Branch=stable
-
 [Flatpak Preinstall org.mozilla.Thunderbird]
 Branch=stable
 

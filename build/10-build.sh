@@ -44,7 +44,36 @@ echo "::endgroup::"
 echo "::group:: Install Packages"
 
 # Install packages using dnf5
-# Example: dnf5 install -y tmux
+copr_install_isolated "scottames/ghostty" ghostty
+copr_install_isolated "imput/helium" helium-bin
+
+# Install 1Password from official repository
+rpm --import https://downloads.1password.com/linux/keys/1password.asc
+cat > /etc/yum.repos.d/1password.repo << 'EOF'
+[1password]
+name=1Password Stable Channel
+baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://downloads.1password.com/linux/keys/1password.asc
+EOF
+dnf5 install -y 1password
+rm -f /etc/yum.repos.d/1password.repo
+
+# Install Mullvad VPN from official repository
+dnf5 config-manager addrepo --from-repofile=https://repository.mullvad.net/rpm/stable/mullvad.repo
+dnf5 install -y mullvad-vpn
+rm -f /etc/yum.repos.d/mullvad.repo
+
+# Replace default terminal
+dnf5 remove -y ptyxis
+
+# Prefer Ghostty as default terminal launcher target
+mkdir -p /etc/xdg
+cat > /etc/xdg/xdg-terminals.list << 'EOF'
+com.mitchellh.ghostty.desktop
+EOF
 
 # Example using COPR with isolated pattern:
 # copr_install_isolated "ublue-os/staging" package-name
