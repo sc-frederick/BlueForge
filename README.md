@@ -1,28 +1,25 @@
 # BlueForge
 
-A template for building custom bootc operating system images based on the lessons from [Universal Blue](https://universal-blue.org/) and [Bluefin](https://projectbluefin.io). It is designed to be used manually, but is optimized to be bootstraped by GitHub Copilot. After set up you'll have your own custom Linux. 
+A practical template for building your own bootc desktop image using the same layered approach used by [Universal Blue](https://universal-blue.org/) and [Bluefin](https://projectbluefin.io).
 
-This template uses the **multi-stage build architecture** from , combining resources from multiple OCI containers for modularity and maintainability. See the [Architecture](#architecture) section below for details.
+You are not patching someone else's distro and hoping it still behaves. You are assembling your own image with reusable upstream components, predictable automation, and room for opinionated defaults.
 
-**Unlike previous templates, you are not modifying Bluefin and making changes.**: You are assembling your own Bluefin in the same exact way that Bluefin, Aurora, and Bluefin LTS are built. This is way more flexible and better for everyone since the image-agnostic and desktop things we love about Bluefin lives in @projectbluefin/common. 
-
- Instead, you create your own OS repository based on this template, allowing full customization while leveraging Bluefin's robust build system and shared components.
-
-> Be the one who moves, not the one who is moved.
+This repository is intentionally friendly to both manual editing and Copilot-assisted bootstrapping, so you can move fast without losing control.
 
 ## What Makes This BlueForge Different?
 
-This image is based on `ghcr.io/ublue-os/bluefin:stable` and keeps the Bluefin-style multi-stage architecture while pre-wiring practical defaults so a new repository can bootstrap quickly.
+This image is based on `ghcr.io/ublue-os/bluefin:stable` and keeps the Bluefin-style multi-stage architecture while pre-wiring a security-focused, developer-first daily-driver setup.
 
 ### Added Packages (Build-time)
-- **System packages**: Ghostty (default terminal), Helium (`helium-bin`), and 1Password for secure sign-in/workflow setup
+- **System packages**: Ghostty (default terminal), Helium (`helium-bin`), 1Password, and Mullvad VPN for secure sign-in/network workflow setup
+- **Terminal behavior**: Ptyxis is removed, Ghostty is installed, and `xdg-terminal-exec` is pointed at Ghostty so "open terminal" flows behave cleanly
 
 ### Added Applications (Runtime)
 - **CLI Tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `nvm`, `claude-code`, `opencode`, `starship`, `zoxide`, `htop`, `tmux` for productivity and day-one terminal workflows
-- **GUI Apps (Flatpak)**: Firefox, Thunderbird, GNOME utilities, Flatseal, Mission Center, Warehouse, and selected Universal Blue tools for a complete first-boot desktop
+- **GUI Apps (Flatpak)**: Thunderbird, GNOME utilities, Flatseal, Mission Center, Warehouse, and selected Universal Blue tools for a complete first-boot desktop
 
 ### Removed/Disabled
-- No core desktop components removed
+- **Removed apps**: Firefox Flatpak preinstall removed from defaults (install manually if wanted)
 - Cosign signing and SBOM attestation stay disabled by default until you complete GitHub secret setup
 
 ### Configuration Changes
@@ -30,6 +27,17 @@ This image is based on `ghcr.io/ublue-os/bluefin:stable` and keeps the Bluefin-s
 - Copies Bluefin shared `ujust` files and layers custom `ujust`, Brewfiles, and Flatpak preinstall manifests into the image
 
 *Last updated: 2026-02-17*
+
+## Current Personality
+
+BlueForge currently aims for this feel:
+
+- Bluefin stability as the base, with fewer moving parts than a heavily remixed image
+- A clean terminal UX (Ghostty first) that behaves predictably in GNOME launch flows
+- Secure-by-default daily tooling (1Password + Mullvad VPN)
+- Developer tooling ready quickly, but still runtime-manageable through Brewfiles and `ujust`
+
+If you fork this template, this section is the best place to describe your own flavor and intent.
 
 ## Guided Copilot Mode
 
@@ -334,7 +342,7 @@ This template follows the **multi-stage build architecture** from @projectbluefi
 - **@ublue-os/brew** - Homebrew integration
 
 **Stage 2: Base Image** - Default options:
-- `ghcr.io/ublue-os/silverblue-main:latest` (Fedora-based, default)
+- `ghcr.io/ublue-os/bluefin:stable` (Fedora-based, default for this repo)
 - `quay.io/centos-bootc/centos-bootc:stream10` (CentOS-based alternative)
 
 ### Benefits of This Architecture

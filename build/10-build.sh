@@ -61,6 +61,11 @@ EOF
 dnf5 install -y 1password
 rm -f /etc/yum.repos.d/1password.repo
 
+# Install Mullvad VPN from official repository
+dnf5 config-manager addrepo --from-repofile=https://repository.mullvad.net/rpm/stable/mullvad.repo
+dnf5 install -y mullvad-vpn
+rm -f /etc/yum.repos.d/mullvad.repo
+
 # Replace default terminal
 dnf5 remove -y ptyxis
 
