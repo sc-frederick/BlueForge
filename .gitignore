@@ -2,3 +2,7 @@ cosign.key
 _build_*
 output
 _build-*/**
+bluefin-package-diff.md
+bluefin-package-diff-prioritized.md
+bluefin-package-baseline-recommendation.md
+software-inventory.md
