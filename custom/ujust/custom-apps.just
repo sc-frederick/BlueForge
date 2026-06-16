@@ -60,29 +60,44 @@ install-jetbrains-toolbox:
 jetbrains-toolbox:
     @ujust install-jetbrains-toolbox
 
-# Set up the JavaScript/TypeScript toolchain (bun primary, pnpm fallback, npm globals)
+# Install Vite+ (vp): unified JS/TS toolchain — runtime, package manager, and tools
+[group('Apps')]
+install-vite-plus:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Installing Vite+ (vp) — unified JS/TS toolchain..."
+    # VP_NODE_MANAGER=yes lets Vite+ manage Node non-interactively, so vp provides
+    # node/npm itself (no separate Homebrew Node needed). The installer adds
+    # 'source ~/.vite-plus/env' to your shell rc files.
+    curl -fsSL https://vite.plus | VP_NODE_MANAGER=yes bash
+    echo ""
+    echo "Done. Open a new terminal (or 'source ~/.vite-plus/env'), then 'vp help'."
+    echo "Vite+ manages your Node version, package manager, dev server, tests,"
+    echo "lint/format, and production builds — all from the 'vp' command."
+
+# Full JS/TS dev setup: the Vite+ toolchain plus the OpenAI Codex CLI
 [group('Apps')]
 setup-js-tooling:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Setting up JS/TS toolchain via Homebrew..."
-    brew install bun pnpm node
-    echo "Enabling corepack (pnpm/yarn shims)..."
-    corepack enable 2>/dev/null || true
-    echo "Installing global CLIs via npm (Vite scaffolder + Codex)..."
-    npm install -g create-vite vite @openai/codex
+    ujust install-vite-plus
+    ujust install-codex
     echo ""
-    echo "Done. Primary package manager: bun. Fallback: pnpm."
-    echo "Scaffold a new app with:  bun create vite   (or)  pnpm create vite"
+    echo "Done. 'vp' is your toolchain entry point; 'codex' is the OpenAI CLI."
 
-# Install the OpenAI Codex CLI (npm; Homebrew's codex is macOS-only)
+# Install the OpenAI Codex CLI (npm global, via the Vite+-managed Node)
 [group('Apps')]
 install-codex:
     #!/usr/bin/env bash
     set -euo pipefail
+    # Prefer the Vite+-managed Node/npm; fall back to any npm already on PATH.
+    VP_ENV="${VP_HOME:-${HOME}/.vite-plus}/env"
+    # shellcheck source=/dev/null
+    [ -f "${VP_ENV}" ] && source "${VP_ENV}"
     if ! command -v npm &>/dev/null; then
-        echo "npm not found. Installing Node via Homebrew first..."
-        brew install node
+        echo "npm not found. Install the Vite+ toolchain first:"
+        echo "    ujust install-vite-plus"
+        exit 1
     fi
     echo "Installing OpenAI Codex CLI..."
     npm install -g @openai/codex

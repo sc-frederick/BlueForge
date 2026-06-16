@@ -14,14 +14,11 @@ brew "gh"         # GitHub CLI
 brew "git"        # Git version control
 brew "neovim"     # Neovim text editor
 
-# JavaScript / TypeScript toolchain
-# bun is the primary runtime + package manager; pnpm is the fallback package
-# manager; node provides npm (used for global CLIs like Codex and Vite).
-tap "oven-sh/bun"
-brew "oven-sh/bun/bun" # JavaScript runtime and package manager (primary)
-brew "pnpm"       # Fast, disk-efficient package manager (fallback)
-brew "node"       # Node.js + npm (for global CLI tooling)
-brew "nvm"        # Node version manager
+# JavaScript / TypeScript: handled by Vite+ (vp), not Homebrew. Vite+ manages the
+# runtime (Node), the per-project package manager, and the frontend toolchain
+# (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown) from one CLI — so node/npm come
+# from vp too, no separate Homebrew Node needed.
+# Install with:  ujust install-vite-plus   (or  ujust setup-js-tooling  for Codex too)
 
 # AI coding tools
 tap "anomalyco/tap"

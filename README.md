@@ -30,8 +30,8 @@ These have no Fedora RPM/dnf repo, so the vendor's official "latest" build is ba
 
 ### Added Applications (Runtime)
 
-- **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `pnpm`, `node`, `nvm`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
-- **JS/TS toolchain**: **bun** primary, **pnpm** fallback, **node/npm** for global CLIs. `ujust setup-js-tooling` also installs the **Vite** scaffolder and **OpenAI Codex** CLI (Codex is npm-only — Homebrew's `codex` is macOS-only).
+- **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
+- **JS/TS toolchain**: **Vite+** (`vp`) — one CLI that manages the Node runtime, the per-project package manager, and the frontend toolchain (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown). Install with `ujust install-vite-plus`; `ujust setup-js-tooling` adds the **OpenAI Codex** CLI on top (Codex is npm-only — Homebrew's `codex` is macOS-only). Node/npm are provided by Vite+, so there's no separate Homebrew Node.
 - **GUI apps (Flatpak)**: Aerion (email), GNOME utilities, Pinta, Clapper, Flatseal, Extension Manager, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
 - **`ujust` installers for licensed/no-repo apps**:
   - `ujust install-bricscad [rpm]` — layers the account-gated **BricsCAD** RPM via `rpm-ostree`. With no argument it auto-detects the newest `BricsCAD-*.rpm` in `~/Downloads`. The RPM (~1.1GB) is licensed and stays out of the image/repo; activate with your license key on first launch.
@@ -157,10 +157,11 @@ ujust install-fonts
 ujust install-all-brew
 ```
 
-Set up the JS/TS toolchain (bun + pnpm + Vite + Codex) and AEC apps:
+Set up the JS/TS toolchain (Vite+ + Codex) and AEC apps:
 
 ```bash
-ujust setup-js-tooling                 # bun, pnpm, node, Vite scaffolder, Codex CLI
+ujust install-vite-plus                # Vite+ (vp): runtime + package manager + tools
+ujust setup-js-tooling                 # Vite+ plus the Codex CLI
 ujust install-codex                    # Codex CLI only
 ujust install-bricscad                 # licensed; auto-detects RPM in ~/Downloads
 ```
