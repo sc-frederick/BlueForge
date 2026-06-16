@@ -14,18 +14,18 @@ brew "gh"         # GitHub CLI
 brew "git"        # Git version control
 brew "neovim"     # Neovim text editor
 
-# JavaScript / TypeScript: handled by Vite+ (vp), not Homebrew. Vite+ manages the
-# runtime (Node), the per-project package manager, and the frontend toolchain
-# (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown) from one CLI — so node/npm come
-# from vp too, no separate Homebrew Node needed.
-# Install with:  ujust install-vite-plus   (or  ujust setup-js-tooling  for Codex too)
+# JavaScript / TypeScript toolchain
+# Vite+ (vp) is the unified toolchain: it manages the Node runtime (pulled in as
+# a dependency, so node/npm come with it), the per-project package manager, and
+# the frontend tools (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown).
+brew "vite-plus"  # `vp` — unified JS/TS toolchain (also provides node/npm)
 
 # AI coding tools
 tap "anomalyco/tap"
 brew "anomalyco/tap/opencode" # OpenCode CLI assistant
 cask "claude-code" # Anthropic CLI assistant
-# Note: OpenAI Codex CLI is macOS-only on Homebrew (cask), so it is installed
-# via npm by `ujust install-codex` (and `ujust setup-js-tooling`) instead.
+# Note: the OpenAI Codex CLI is macOS-only on Homebrew, so it is installed via
+# npm by `ujust install-codex` instead.
 
 # Shell enhancements  
 brew "starship"   # Cross-shell prompt

@@ -28,10 +28,17 @@ These have no Fedora RPM/dnf repo, so the vendor's official "latest" build is ba
 - **Typora** (markdown editor) — official tarball in `/opt/typora`.
 - **UpNote** (note-taking) — official AppImage, extracted to `/opt/upnote`.
 
-### Added Applications (Runtime)
+### Added Applications (Runtime, auto-installed)
+
+These are managed by **Homebrew** but installed **automatically on first login** — a
+per-user systemd service (`blueforge-brew-bundle.service`) runs `brew bundle` over
+the curated Brewfiles, so the toolchain is there out of the box with nothing to
+type. It re-runs only when the Brewfiles change after an image update, and Bluefin's
+`brew-upgrade` timer keeps installed packages current. The `ujust install-*` recipes
+below remain as manual fallbacks.
 
 - **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
-- **JS/TS toolchain**: **Vite+** (`vp`) — one CLI that manages the Node runtime, the per-project package manager, and the frontend toolchain (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown). Install with `ujust install-vite-plus`; `ujust setup-js-tooling` adds the **OpenAI Codex** CLI on top (Codex is npm-only — Homebrew's `codex` is macOS-only). Node/npm are provided by Vite+, so there's no separate Homebrew Node.
+- **JS/TS toolchain**: **Vite+** (`vite-plus`/`vp`) — one CLI that manages the Node runtime (pulled in as a dependency, so node/npm come with it), the per-project package manager, and the frontend toolchain (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown). `ujust install-codex` adds the **OpenAI Codex** CLI on top (Codex is npm-only — Homebrew's `codex` is macOS-only).
 - **GUI apps (Flatpak)**: Aerion (email), GNOME utilities, Pinta, Clapper, Flatseal, Extension Manager, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
 - **`ujust` installers for licensed/no-repo apps**:
   - `ujust install-bricscad [rpm]` — layers the account-gated **BricsCAD** RPM via `rpm-ostree`. With no argument it auto-detects the newest `BricsCAD-*.rpm` in `~/Downloads`. The RPM (~1.1GB) is licensed and stays out of the image/repo; activate with your license key on first launch.
@@ -148,21 +155,21 @@ Never commit `cosign.key`.
 
 ## Useful Commands After First Boot
 
-Install runtime packages:
+The Homebrew toolchain installs itself on first login (see _Added Applications_
+above). These commands are manual fallbacks — to re-run a bundle yourself, or to
+install the optional bundles:
 
 ```bash
-ujust install-default-apps
-ujust install-dev-tools
-ujust install-fonts
-ujust install-all-brew
+ujust install-default-apps             # CLI tools + Vite+ (runs automatically too)
+ujust install-dev-tools                # optional heavier dev bundle
+ujust install-fonts                    # Nerd Fonts
+ujust install-all-brew                 # all bundles at once
 ```
 
-Set up the JS/TS toolchain (Vite+ + Codex) and AEC apps:
+Optional / licensed apps:
 
 ```bash
-ujust install-vite-plus                # Vite+ (vp): runtime + package manager + tools
-ujust setup-js-tooling                 # Vite+ plus the Codex CLI
-ujust install-codex                    # Codex CLI only
+ujust install-codex                    # OpenAI Codex CLI (npm global)
 ujust install-bricscad                 # licensed; auto-detects RPM in ~/Downloads
 ```
 
