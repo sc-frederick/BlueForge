@@ -14,7 +14,7 @@ integration on bootc), Flatpak/AppImage only as a last resort.
 
 Baked into the image so the desktop is usable from first boot:
 
-- **Terminal & security**: Ghostty, Helium (`helium-bin`), 1Password, Mullvad VPN.
+- **Terminal & security**: Ghostty, 1Password, Mullvad VPN.
 - **Browser**: **Brave Origin** (Brave's minimal build; free on Linux) from Brave's official RPM repo.
 - **Productivity & comms**: **Bitwarden** (vendor RPM), **Zoom** (vendor RPM), **Dropbox** (`nautilus-dropbox` from Dropbox's Fedora repo).
 - **Office suite**: **LibreOffice** (Writer/Calc/Impress/Draw + English langpack + GNOME integration) from Fedora repos, **preconfigured to behave like MS Office** — see below.
@@ -32,7 +32,7 @@ These have no Fedora RPM/dnf repo, so the vendor's official "latest" build is ba
 
 - **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `pnpm`, `node`, `nvm`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
 - **JS/TS toolchain**: **bun** primary, **pnpm** fallback, **node/npm** for global CLIs. `ujust setup-js-tooling` also installs the **Vite** scaffolder and **OpenAI Codex** CLI (Codex is npm-only — Homebrew's `codex` is macOS-only).
-- **GUI apps (Flatpak)**: Thunderbird, GNOME utilities, Pinta, Clapper, Flatseal, Extension Manager, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
+- **GUI apps (Flatpak)**: Aerion (email), GNOME utilities, Pinta, Clapper, Flatseal, Extension Manager, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
 - **`ujust` installers for licensed/no-repo apps**:
   - `ujust install-bricscad [rpm]` — layers the account-gated **BricsCAD** RPM via `rpm-ostree`. With no argument it auto-detects the newest `BricsCAD-*.rpm` in `~/Downloads`. The RPM (~1.1GB) is licensed and stays out of the image/repo; activate with your license key on first launch.
   - `ujust install-codex` — installs the **Codex** CLI on its own.
@@ -58,7 +58,7 @@ Users can still change any of this in *Tools > Options*. The Navigator side pane
 - Sets Ghostty as preferred terminal via `/etc/xdg/xdg-terminals.list`.
 - Enables `podman.socket` at build time.
 - Copies and merges custom Brewfiles, `ujust` recipes, Flatpak preinstall manifests, and the LibreOffice config overlay into system locations.
-- Uses isolated COPR installs for Ghostty and Helium to avoid repo persistence.
+- Uses an isolated COPR install for Ghostty to avoid repo persistence.
 
 _Last updated: 2026-06-16_
 

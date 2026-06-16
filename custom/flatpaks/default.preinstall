@@ -3,8 +3,8 @@
 # Format: INI file with [Flatpak Preinstall NAME] groups
 # See: https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-preinstall
 
-# Web Browsers
-[Flatpak Preinstall org.mozilla.Thunderbird]
+# Email
+[Flatpak Preinstall io.github.hkdb.Aerion]
 Branch=stable
 
 # GNOME Core Applications

@@ -45,7 +45,6 @@ echo "::group:: Install Packages"
 
 # Install packages using dnf5
 copr_install_isolated "scottames/ghostty" ghostty
-copr_install_isolated "imput/helium" helium-bin
 
 # Install 1Password from official repository
 rpm --import https://downloads.1password.com/linux/keys/1password.asc
