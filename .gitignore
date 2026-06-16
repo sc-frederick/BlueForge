@@ -6,3 +6,10 @@ bluefin-package-diff.md
 bluefin-package-diff-prioritized.md
 bluefin-package-baseline-recommendation.md
 software-inventory.md
+
+# Licensed/large vendor installers are layered at runtime via `ujust`, never
+# committed (GitHub rejects files >100MB). Keep them out of the repo.
+*.rpm
+*.deb
+*.AppImage
+*:Zone.Identifier
