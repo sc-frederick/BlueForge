@@ -36,8 +36,8 @@ jobs:
         include:
           - name_suffix: ""          # -> blueforge (non-Nvidia)
             base_image: "ghcr.io/ublue-os/bluefin:stable"
-          - name_suffix: "-nvidia"   # -> blueforge-nvidia (closed driver)
-            base_image: "ghcr.io/ublue-os/bluefin-nvidia:stable"
+          - name_suffix: "-nvidia"   # -> blueforge-nvidia (open kernel modules)
+            base_image: "ghcr.io/ublue-os/bluefin-nvidia-open:stable"
 
     permissions:
       contents: read

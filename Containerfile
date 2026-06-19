@@ -33,7 +33,7 @@ COPY --from=ghcr.io/ublue-os/brew:latest /system_files /oci/brew
 
 # Base Image - Bluefin GNOME included
 # Default is the non-Nvidia Bluefin base. CI (build.yml matrix) and the Justfile
-# override BASE_IMAGE to ghcr.io/ublue-os/bluefin-nvidia:stable to produce the
+# override BASE_IMAGE to ghcr.io/ublue-os/bluefin-nvidia-open:stable to produce the
 # blueforge-nvidia image. BASE_IMAGE is only referenced in this FROM line, so it
 # does not need re-declaring inside the build stage below.
 ARG BASE_IMAGE="ghcr.io/ublue-os/bluefin:stable"

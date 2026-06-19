@@ -139,8 +139,9 @@ BlueForge publishes **two** images from this repo:
 - `ghcr.io/sc-frederick/blueforge:stable` — standard (no GPU drivers), for machines
   without an Nvidia dGPU.
 - `ghcr.io/sc-frederick/blueforge-nvidia:stable` — for Intel + **Nvidia dedicated GPU**
-  machines. Identical to the standard image plus Nvidia's proprietary akmod drivers
-  (inherited from `ghcr.io/ublue-os/bluefin-nvidia:stable`).
+  machines. Identical to the standard image plus Nvidia's open kernel modules
+  (inherited from `ghcr.io/ublue-os/bluefin-nvidia-open:stable`). Requires a
+  Turing / RTX-20-series or newer GPU.
 
 Standard:
 
@@ -164,16 +165,17 @@ sudo systemctl reboot
   or disable Secure Boot. No signing work is needed in this repo — BlueForge layers on
   top of the prebuilt Nvidia base and never rebuilds the kernel or akmods, so the signed
   modules carry through unchanged.
-- **Driver choice**: The Nvidia image uses the **proprietary** driver
-  (`bluefin-nvidia`). Universal Blue is standardizing on the open kernel modules
-  (`nvidia-open`) for 2026+ and phasing out the closed driver. For Turing /
-  RTX-20-series or newer GPUs, switching to `ghcr.io/ublue-os/bluefin-nvidia-open:stable`
-  is a one-line change to the `base_image` in the `.github/workflows/build.yml` matrix.
+- **Driver choice**: The Nvidia image uses the **open kernel modules**
+  (`bluefin-nvidia-open`), which Universal Blue is standardizing on for 2026+ as the
+  closed driver is phased out. This requires a Turing / RTX-20-series or newer GPU.
+  Older (pre-Turing) cards need the proprietary driver instead — switch the
+  `base_image` in the `.github/workflows/build.yml` matrix back to
+  `ghcr.io/ublue-os/bluefin-nvidia:stable`.
 
 #### Optional: build an Nvidia installer ISO
 
 ```bash
-BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia:stable just build blueforge-nvidia stable
+BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia-open:stable just build blueforge-nvidia stable
 just build-iso-nvidia
 ```
 
