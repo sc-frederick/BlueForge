@@ -27,6 +27,12 @@ jobs:
               grep -E -e "^tap" $brewfile > taps.Brewfile || echo "# No taps" > taps.Brewfile
               set -xeuo pipefail
               brew bundle --file=./taps.Brewfile
+              # Recent Homebrew refuses to load formulae from third-party taps unless
+              # they are explicitly trusted (HOMEBREW_REQUIRE_TAP_TRUST). Trust every
+              # tap this Brewfile declares so `brew bundle exec` can resolve them.
+              while IFS= read -r tap_name ; do
+                brew trust --tap "$tap_name"
+              done < <(sed -nE 's/^tap[[:space:]]+"([^"]+)".*/\1/p' taps.Brewfile)
               if brew bundle exec whoami --file="$brewfile" | grep -F -e "${USER}" ; then
                 echo "✓ $brewfile is valid"
               else
