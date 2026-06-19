@@ -2,8 +2,7 @@
 ####################
 ### custom-apps.just
 ####################
-## Example application installation commands
-## These are simplified examples adapted from Bluefin
+## Runtime app installers: Homebrew bundles, dev toolchains, and licensed/no-repo apps.
 
 # Install default applications via Homebrew
 [group('Apps')]
@@ -61,6 +60,66 @@ install-jetbrains-toolbox:
 jetbrains-toolbox:
     @ujust install-jetbrains-toolbox
 
+# Install the OpenAI Codex CLI (npm global; Homebrew's codex is macOS-only)
+[group('Apps')]
+install-codex:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # node/npm are provided by Homebrew (a vite-plus dependency); make sure the
+    # brew environment is on PATH for this non-login shell.
+    [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    if ! command -v npm &>/dev/null; then
+        echo "npm not found. It ships with vite-plus via Homebrew — make sure the"
+        echo "default bundle has been installed (it runs automatically on first"
+        echo "login, or run 'ujust install-default-apps')."
+        exit 1
+    fi
+    echo "Installing OpenAI Codex CLI..."
+    npm install -g @openai/codex
+    echo "Done. Run 'codex' and sign in with your ChatGPT account or OPENAI_API_KEY."
+
+# Install BricsCAD from a vendor RPM (account-gated download; license required)
+[group('Apps')]
+install-bricscad RPM_PATH="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source /usr/lib/ujust/ujust.sh 2>/dev/null || true
+    RPM="{{ RPM_PATH }}"
+    # No path given: try to auto-locate the newest BricsCAD RPM in ~/Downloads.
+    if [ -z "${RPM}" ]; then
+        shopt -s nullglob
+        CANDIDATES=("${HOME}"/Downloads/BricsCAD-*.rpm "${HOME}"/Downloads/bricscad*.rpm)
+        shopt -u nullglob
+        if [ "${#CANDIDATES[@]}" -gt 0 ]; then
+            # Pick the most recently modified match.
+            RPM="$(ls -t "${CANDIDATES[@]}" | head -n1)"
+            echo "Found BricsCAD RPM: ${RPM}"
+        fi
+    fi
+    if [ -z "${RPM}" ]; then
+        echo "BricsCAD is a licensed product and its RPM is behind a Bricsys login."
+        echo ""
+        echo "  1. Download the Linux RPM (Fedora/openSUSE) from:"
+        echo "       https://www.bricsys.com/download"
+        echo "  2. Drop it in ~/Downloads and just run 'ujust install-bricscad',"
+        echo "     or pass the path explicitly, e.g.:"
+        echo "       ujust install-bricscad ~/Downloads/BricsCAD-*.rpm"
+        echo ""
+        echo "It will be layered with 'rpm-ostree install' (a reboot applies it)."
+        echo "After install, launch BricsCAD and enter your license key to activate."
+        exit 0
+    fi
+    if [ ! -f "${RPM}" ]; then
+        echo "File not found: ${RPM}"
+        exit 1
+    fi
+    echo "Layering BricsCAD (${RPM}) — this modifies the base image and needs a reboot..."
+    sudo rpm-ostree install "${RPM}"
+    echo "Done. Reboot to finish: 'systemctl reboot'."
+    echo "After reboot, launch BricsCAD and enter your license key to activate."
+    echo "Note: BricsCAD may need legacy libs (e.g. gtk2). If it fails to launch,"
+    echo "      run 'rpm-ostree install gtk2' and reboot."
+
 # Install a Flatpak application from Flathub
 [group('Apps')]
 install-flatpak APP_ID:
@@ -68,13 +127,3 @@ install-flatpak APP_ID:
     echo "Installing {{ APP_ID }} from Flathub..."
     flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
     flatpak install -y flathub {{ APP_ID }}
-
-# Example: Install VSCode via Flatpak
-[group('Apps')]
-install-vscode:
-    ujust install-flatpak com.visualstudio.code
-
-# Example: Install GIMP via Flatpak
-[group('Apps')]
-install-gimp:
-    ujust install-flatpak org.gimp.GIMP

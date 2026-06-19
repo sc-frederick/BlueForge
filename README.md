@@ -6,33 +6,68 @@ It is based on `ghcr.io/ublue-os/bluefin:stable`, but tuned to my workflow: Ghos
 
 ## What Makes This BlueForge Different?
 
-Compared to stock Bluefin, this is the setup I want to live in every day.
+Compared to stock Bluefin, this is the setup my AEC team wants to live in every day.
+The guiding rule: **native dnf/RPM packages wherever possible** (clean desktop
+integration on bootc), Flatpak/AppImage only as a last resort.
 
-### Added Packages (Build-time)
+### Added Packages (Build-time, dnf/RPM)
 
-- **System packages**: Ghostty, Helium (`helium-bin`), 1Password, Mullvad VPN.
-- **Why these are baked in**: login/network security are non-negotiable, and the terminal should feel right immediately.
+Baked into the image so the desktop is usable from first boot:
 
-### Added Applications (Runtime)
+- **Terminal & security**: Ghostty, 1Password, Mullvad VPN.
+- **Browser**: **Brave Origin** (Brave's minimal build; free on Linux) from Brave's official RPM repo.
+- **Productivity & comms**: **Bitwarden** (vendor RPM), **Zoom** (vendor RPM), **Dropbox** (`nautilus-dropbox` from Dropbox's Fedora repo).
+- **Office suite**: **LibreOffice** (Writer/Calc/Impress/Draw + English langpack + GNOME integration) from Fedora repos, **preconfigured to behave like MS Office** — see below.
+- **Why dnf-first**: Bitwarden and the browser especially integrate far more cleanly as RPMs than as Flatpaks on a bootc system.
 
-- **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `bun`, `nvm`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
-- **GUI apps (Flatpak)**: Thunderbird, GNOME utilities, Flatseal, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
-- **Why most apps stay runtime-managed**: faster iteration and easier updates without rebuilding the base image.
+### Bundled GUI apps (Build-time, `/opt`)
+
+These have no Fedora RPM/dnf repo, so the vendor's official "latest" build is baked into `/opt` with a system launcher (refreshed on image rebuild):
+
+- **Beeper** (unified chat) — official AppImage, extracted to `/opt/beeper`.
+- **Typora** (markdown editor) — official tarball in `/opt/typora`.
+- **UpNote** (note-taking) — official AppImage, extracted to `/opt/upnote`.
+
+### Added Applications (Runtime, auto-installed)
+
+These are managed by **Homebrew** but installed **automatically on first login** — a
+per-user systemd service (`blueforge-brew-bundle.service`) runs `brew bundle` over
+the curated Brewfiles, so the toolchain is there out of the box with nothing to
+type. It re-runs only when the Brewfiles change after an image update, and Bluefin's
+`brew-upgrade` timer keeps installed packages current. The `ujust install-*` recipes
+below remain as manual fallbacks.
+
+- **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
+- **JS/TS toolchain**: **Vite+** (`vite-plus`/`vp`) — one CLI that manages the Node runtime (pulled in as a dependency, so node/npm come with it), the per-project package manager, and the frontend toolchain (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown). `ujust install-codex` adds the **OpenAI Codex** CLI on top (Codex is npm-only — Homebrew's `codex` is macOS-only).
+- **GUI apps (Flatpak)**: Aerion (email), GNOME utilities, Pinta, Clapper, Flatseal, Extension Manager, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
+- **`ujust` installers for licensed/no-repo apps**:
+  - `ujust install-bricscad [rpm]` — layers the account-gated **BricsCAD** RPM via `rpm-ostree`. With no argument it auto-detects the newest `BricsCAD-*.rpm` in `~/Downloads`. The RPM (~1.1GB) is licensed and stays out of the image/repo; activate with your license key on first launch.
+  - `ujust install-codex` — installs the **Codex** CLI on its own.
+
+### LibreOffice configured like MS Office
+
+A system-wide config overlay (`custom/libreoffice/blueforge-msoffice.xcd`) sets:
+
+- **Default save formats** to Microsoft OOXML: `.docx` / `.xlsx` / `.pptx`.
+- **Tabbed "Notebookbar"** ribbon UI (closest to the MS Office ribbon) for Writer/Calc/Impress/Draw.
+- **No "keep in MS format?" nag** on every save.
+
+Users can still change any of this in *Tools > Options*. The Navigator side panel (MS Word's "navigation pane" equivalent) toggles with **F5**.
 
 ### Removed/Disabled
 
 - **Removed**: `ptyxis` (Ghostty is preferred instead).
-- **Not preinstalled**: Firefox Flatpak is intentionally not in defaults.
+- **Not preinstalled**: Firefox Flatpak is intentionally not in defaults (Brave Origin is the default browser).
 - **Disabled by default**: Cosign signing and SBOM attestation stay off until secrets are configured.
 
 ### Configuration Changes
 
 - Sets Ghostty as preferred terminal via `/etc/xdg/xdg-terminals.list`.
 - Enables `podman.socket` at build time.
-- Copies and merges custom Brewfiles, `ujust` recipes, and Flatpak preinstall manifests into system locations.
-- Uses isolated COPR installs for Ghostty and Helium to avoid repo persistence.
+- Copies and merges custom Brewfiles, `ujust` recipes, Flatpak preinstall manifests, and the LibreOffice config overlay into system locations.
+- Uses an isolated COPR install for Ghostty to avoid repo persistence.
 
-_Last updated: 2026-02-16_
+_Last updated: 2026-06-16_
 
 ## Build Architecture (Bluefin Pattern)
 
@@ -66,40 +101,18 @@ If I had to describe this OS in one line: Bluefin reliability, but with my defau
 ## Repo Layout
 
 - `Containerfile` - base image, layered context, and build execution.
-- `build/10-build.sh` - build-time packages and system configuration.
+- `build/10-build.sh` - build-time packages (dnf/RPM + `/opt` apps) and system configuration.
 - `custom/brew/*.Brewfile` - runtime CLI/dev/font package bundles.
 - `custom/flatpaks/default.preinstall` - first-boot GUI app manifest.
+- `custom/libreoffice/blueforge-msoffice.xcd` - system-wide LibreOffice MS-Office-like defaults.
 - `custom/ujust/*.just` - user-facing app/system helpers.
 - `.github/workflows/*.yml` - CI build, cleanup, Renovate, and validation workflows.
 
-## Quick Start
+## Customizing
 
-### 1) Use this template
+Where to make changes:
 
-Create a new GitHub repo from this template.
-
-### 2) Rename identity everywhere
-
-Set your OS/repo name consistently in:
-
-1. `Containerfile` (`# Name: your-name`)
-2. `Justfile` (`export image_name := env("IMAGE_NAME", "your-name")`)
-3. `README.md` title
-4. `artifacthub-repo.yml` (`repositoryID: your-name`)
-5. `custom/ujust/README.md` (`localhost/your-name:stable` examples)
-6. `.github/workflows/clean.yml` package reference
-
-### 3) Enable Actions permissions
-
-In GitHub repo settings:
-
-- Enable Actions.
-- Set workflow permissions to **Read and write**.
-- Enable permission for Actions to create/approve PRs.
-
-### 4) Customize your image
-
-- **Build-time system changes**: edit `build/10-build.sh`.
+- **Build-time system changes** (dnf/RPM packages, `/opt` apps, system config): edit `build/10-build.sh`.
 - **Runtime CLI tools**: edit `custom/brew/default.Brewfile` and related Brewfiles.
 - **Runtime GUI apps**: edit `custom/flatpaks/default.preinstall`.
 - **User shortcuts**: edit `custom/ujust/custom-apps.just` and `custom/ujust/custom-system.just`.
@@ -122,7 +135,7 @@ just run-vm-iso
 ## Deploy
 
 ```bash
-sudo bootc switch ghcr.io/<your-user>/<your-repo>:stable
+sudo bootc switch ghcr.io/sc-frederick/blueforge:stable
 sudo systemctl reboot
 ```
 
@@ -142,13 +155,22 @@ Never commit `cosign.key`.
 
 ## Useful Commands After First Boot
 
-Install runtime packages:
+The Homebrew toolchain installs itself on first login (see _Added Applications_
+above). These commands are manual fallbacks — to re-run a bundle yourself, or to
+install the optional bundles:
 
 ```bash
-ujust install-default-apps
-ujust install-dev-tools
-ujust install-fonts
-ujust install-all-brew
+ujust install-default-apps             # CLI tools + Vite+ (runs automatically too)
+ujust install-dev-tools                # optional heavier dev bundle
+ujust install-fonts                    # Nerd Fonts
+ujust install-all-brew                 # all bundles at once
+```
+
+Optional / licensed apps:
+
+```bash
+ujust install-codex                    # OpenAI Codex CLI (npm global)
+ujust install-bricscad                 # licensed; auto-detects RPM in ~/Downloads
 ```
 
 Extra helpers:

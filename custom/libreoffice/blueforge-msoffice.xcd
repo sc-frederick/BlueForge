@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  BlueForge LibreOffice defaults: make LibreOffice behave like Microsoft Office.
+
+  This file is a system-wide LibreOffice configuration overlay (.xcd). It is
+  copied into LibreOffice's registry directory at build time so the defaults
+  apply to every user on first launch (users can still override in Tools >
+  Options). It does three things:
+
+    1. Default save formats -> Microsoft OOXML (.docx / .xlsx / .pptx)
+    2. UI -> the tabbed "Notebookbar" (ribbon-style, like the MS Office ribbon)
+    3. Suppress the "keep in MS format?" warning dialog on every save
+
+  Filter names (ooSetupFactoryDefaultFilter):
+    Writer  -> "MS Word 2007 XML"            (.docx)
+    Calc    -> "Calc MS Excel 2007 XML"      (.xlsx)
+    Impress -> "Impress MS PowerPoint 2007 XML" (.pptx)
+-->
+<oor:data xmlns:oor="http://openoffice.org/2001/registry"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <!-- Default document save filters: OOXML instead of ODF -->
+  <oor:component-data oor:name="Setup" oor:package="org.openoffice">
+    <node oor:name="Office">
+      <node oor:name="Factories">
+        <node oor:name="com.sun.star.text.TextDocument">
+          <prop oor:name="ooSetupFactoryDefaultFilter" oor:op="fuse">
+            <value>MS Word 2007 XML</value>
+          </prop>
+        </node>
+        <node oor:name="com.sun.star.sheet.SpreadsheetDocument">
+          <prop oor:name="ooSetupFactoryDefaultFilter" oor:op="fuse">
+            <value>Calc MS Excel 2007 XML</value>
+          </prop>
+        </node>
+        <node oor:name="com.sun.star.presentation.PresentationDocument">
+          <prop oor:name="ooSetupFactoryDefaultFilter" oor:op="fuse">
+            <value>Impress MS PowerPoint 2007 XML</value>
+          </prop>
+        </node>
+      </node>
+    </node>
+  </oor:component-data>
+
+  <!-- Tabbed "ribbon" UI for Writer / Calc / Impress / Draw -->
+  <oor:component-data oor:name="UI" oor:package="org.openoffice.Office">
+    <node oor:name="ToolbarMode">
+      <prop oor:name="ActiveWriter" oor:op="fuse">
+        <value>notebookbar.ui</value>
+      </prop>
+      <prop oor:name="ActiveCalc" oor:op="fuse">
+        <value>notebookbar.ui</value>
+      </prop>
+      <prop oor:name="ActiveImpress" oor:op="fuse">
+        <value>notebookbar.ui</value>
+      </prop>
+      <prop oor:name="ActiveDraw" oor:op="fuse">
+        <value>notebookbar.ui</value>
+      </prop>
+    </node>
+  </oor:component-data>
+
+  <!-- Don't nag about saving in non-ODF (MS) formats -->
+  <oor:component-data oor:name="Common" oor:package="org.openoffice.Office">
+    <node oor:name="Save">
+      <node oor:name="Document">
+        <prop oor:name="WarnAlienFormat" oor:op="fuse">
+          <value>false</value>
+        </prop>
+      </node>
+    </node>
+  </oor:component-data>
+
+</oor:data>
