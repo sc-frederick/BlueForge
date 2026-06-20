@@ -106,7 +106,7 @@ dnf5 install -y \
     libreoffice-impress \
     libreoffice-draw \
     libreoffice-langpack-en \
-    libreoffice-gnome
+    libreoffice-gtk3
 
 # Apply MS-Office-like LibreOffice defaults system-wide. The registry directory
 # is created by the libreoffice packages above, so this must run after install.
