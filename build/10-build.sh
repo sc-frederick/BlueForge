@@ -106,13 +106,15 @@ rm -f /etc/yum.repos.d/dropbox.repo
 # Install LibreOffice (office suite) from Fedora repositories. We pull the core
 # apps plus the English langpack and GNOME integration. MS-Office-like defaults
 # (OOXML save formats + ribbon UI) are applied via the .xcd overlay copied below.
+# Note: the old libreoffice-gnome integration package was retired from Fedora;
+# libreoffice-gtk4 is its GNOME-native replacement (libreoffice-gtk3 also works).
 dnf5 install -y \
     libreoffice-writer \
     libreoffice-calc \
     libreoffice-impress \
     libreoffice-draw \
     libreoffice-langpack-en \
-    libreoffice-gnome
+    libreoffice-gtk4
 
 # Apply MS-Office-like LibreOffice defaults system-wide. The registry directory
 # is created by the libreoffice packages above, so this must run after install.
