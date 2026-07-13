@@ -21,6 +21,11 @@
 # See: https://docs.projectbluefin.io/contributing/ for architecture diagram
 ###############################################################################
 
+# Base image build arg. Declared before the first FROM so it is global —
+# an ARG declared inside a stage is scoped to that stage and would leave
+# FROM ${BASE_IMAGE} empty ("no FROM statement found").
+ARG BASE_IMAGE="ghcr.io/ublue-os/bluefin:stable"
+
 # Context stage - combine local and imported OCI container resources
 FROM scratch AS ctx
 
@@ -34,9 +39,7 @@ COPY --from=ghcr.io/ublue-os/brew:latest /system_files /oci/brew
 # Base Image - Bluefin GNOME included
 # Default is the non-Nvidia Bluefin base. CI (build.yml matrix) and the Justfile
 # override BASE_IMAGE to ghcr.io/ublue-os/bluefin-nvidia:stable to produce the
-# blueforge-nvidia image. BASE_IMAGE is only referenced in this FROM line, so it
-# does not need re-declaring inside the build stage below.
-ARG BASE_IMAGE="ghcr.io/ublue-os/bluefin:stable"
+# blueforge-nvidia image. BASE_IMAGE is declared at the top of this file.
 FROM ${BASE_IMAGE}
 
 ## Alternative base images, no desktop included (uncomment to use):
