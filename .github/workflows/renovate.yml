@@ -1,8 +1,8 @@
 name: Renovate
 on:
   schedule:
-    # Run every 6 hours
-    - cron: '0 */6 * * *'
+    # Run weekly (Monday 10:00 UTC)
+    - cron: '0 10 * * 1'
   workflow_dispatch:
   push:
     branches:
@@ -27,5 +27,3 @@ jobs:
         with:
           configurationFile: .github/renovate.json5
           token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          LOG_LEVEL: 'debug'

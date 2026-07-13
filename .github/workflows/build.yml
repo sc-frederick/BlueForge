@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '05 10 * * *'  # 10:05am UTC everyday
+    - cron: '05 10 * * 1'  # 10:05am UTC every Monday
   push:
     branches:
       - main
@@ -22,7 +22,7 @@ env:
   DEFAULT_TAG: "stable"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.brand_name}}-${{ inputs.stream_name }}
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -43,6 +43,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
+      issues: write
 
     steps:
       - name: Prepare environment
@@ -227,3 +228,16 @@ jobs:
       #       --type spdxjson \
       #       --key env://COSIGN_PRIVATE_KEY \
       #       "${IMAGE}@${DIGEST}"
+
+      # Scheduled builds fail silently otherwise — file one issue (no duplicates)
+      # so a broken cron build can't go unnoticed for weeks again.
+      - name: File issue on scheduled-build failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh issue list --repo "$GITHUB_REPOSITORY" --search "Scheduled build failing in:title" --state open | grep -q .; then
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "Scheduled build failing" \
+              --body "The scheduled container build failed. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          fi

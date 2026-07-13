@@ -54,7 +54,10 @@ name=1Password Stable Channel
 baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
 enabled=1
 gpgcheck=1
-repo_gpgcheck=1
+# repo_gpgcheck is off: dnf5 cannot import the repomd signing key inside the
+# container build (rpmdb transaction-lock failure). Package signatures are
+# still verified via gpgcheck against the key imported above.
+repo_gpgcheck=0
 gpgkey=https://downloads.1password.com/linux/keys/1password.asc
 EOF
 dnf5 install -y 1password
@@ -62,6 +65,9 @@ rm -f /etc/yum.repos.d/1password.repo
 
 # Install Mullvad VPN from official repository
 dnf5 config-manager addrepo --from-repofile=https://repository.mullvad.net/rpm/stable/mullvad.repo
+# Mullvad's repo file sets repo_gpgcheck=1, which fails in-container the same
+# way as 1Password above; disable it (package gpgcheck remains enabled).
+sed -i 's/^repo_gpgcheck=.*/repo_gpgcheck=0/' /etc/yum.repos.d/mullvad*.repo
 dnf5 install -y mullvad-vpn
 rm -f /etc/yum.repos.d/mullvad.repo
 
@@ -100,13 +106,15 @@ rm -f /etc/yum.repos.d/dropbox.repo
 # Install LibreOffice (office suite) from Fedora repositories. We pull the core
 # apps plus the English langpack and GNOME integration. MS-Office-like defaults
 # (OOXML save formats + ribbon UI) are applied via the .xcd overlay copied below.
+# Note: the old libreoffice-gnome integration package was retired from Fedora;
+# libreoffice-gtk4 is its GNOME-native replacement (libreoffice-gtk3 also works).
 dnf5 install -y \
     libreoffice-writer \
     libreoffice-calc \
     libreoffice-impress \
     libreoffice-draw \
     libreoffice-langpack-en \
-    libreoffice-gnome
+    libreoffice-gtk4
 
 # Apply MS-Office-like LibreOffice defaults system-wide. The registry directory
 # is created by the libreoffice packages above, so this must run after install.
