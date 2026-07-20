@@ -16,8 +16,8 @@ opinionated defaults.
 
 ### Added Packages (Build-time)
 
-- **Desktop and security**: Ghostty, 1Password, Mullvad VPN, Brave Origin,
-  Bitwarden, Zoom, and Dropbox integration.
+- **Desktop and security**: Ghostty, Bitwarden, Mullvad VPN, Brave Origin, Zoom,
+  and Dropbox integration.
 - **Productivity**: LibreOffice with OOXML defaults and a tabbed interface.
 - **Bundled applications**: Beeper, Typora, and UpNote under immutable `/opt`.
 - **System integration only**: build-time RPMs are reserved for applications,

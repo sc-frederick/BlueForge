@@ -54,27 +54,10 @@ echo "::group:: Install Packages"
 # Install packages using dnf5
 copr_install_isolated "scottames/ghostty" ghostty
 
-# Install 1Password from official repository
-rpm --import https://downloads.1password.com/linux/keys/1password.asc
-cat > /etc/yum.repos.d/1password.repo << 'EOF'
-[1password]
-name=1Password Stable Channel
-baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
-enabled=1
-gpgcheck=1
-# repo_gpgcheck is off: dnf5 cannot import the repomd signing key inside the
-# container build (rpmdb transaction-lock failure). Package signatures are
-# still verified via gpgcheck against the key imported above.
-repo_gpgcheck=0
-gpgkey=https://downloads.1password.com/linux/keys/1password.asc
-EOF
-dnf5 install -y 1password
-rm -f /etc/yum.repos.d/1password.repo
-
 # Install Mullvad VPN from official repository
 dnf5 config-manager addrepo --from-repofile=https://repository.mullvad.net/rpm/stable/mullvad.repo
-# Mullvad's repo file sets repo_gpgcheck=1, which fails in-container the same
-# way as 1Password above; disable it (package gpgcheck remains enabled).
+# Mullvad's repo file sets repo_gpgcheck=1, which cannot import its metadata key
+# during a dnf5 container transaction; package signatures remain enabled.
 sed -i 's/^repo_gpgcheck=.*/repo_gpgcheck=0/' /etc/yum.repos.d/mullvad*.repo
 dnf5 install -y mullvad-vpn
 rm -f /etc/yum.repos.d/mullvad.repo
