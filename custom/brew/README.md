@@ -1,74 +1,55 @@
-# Homebrew Integration
+# BlueForge Homebrew Bundles
 
-This directory contains Brewfile declarations that will be copied into your custom image at `/usr/share/ublue-os/homebrew/`.
+BlueForge uses Bluefin's supported Homebrew lifecycle. Homebrew itself and all
+packages remain user-owned; the bootc image only ships declarative Brewfiles.
 
-## What are Brewfiles?
+## Automatic packages
 
-Brewfiles are Homebrew's way of declaring packages in a declarative format. They allow you to specify which packages, taps, and casks you want installed.
+Files under `preinstall.d/` are copied to
+`/usr/share/ublue-os/homebrew/preinstall.d/`. Bluefin's
+`brew-preinstall.service` hashes all managed Brewfiles and:
 
-## How It Works
+- installs additions after first login or an image update;
+- removes packages that disappeared from the OS-managed set;
+- leaves independently installed user packages alone;
+- exits quickly when nothing changed.
 
-1. **During Build**: Files in this directory are copied to `/usr/share/ublue-os/homebrew/` in the image
-2. **After Installation**: Users install packages by running `brew bundle` commands
-3. **User Experience**: Declarative package management via Homebrew
+`preinstall.d/blueforge.Brewfile` is the default developer workstation. It
+contains universal CLI tools, Claude Code, OpenCode, Cursor, Node, and the
+devcontainer tooling. Codex and T3 Code are provisioned from their official npm
+packages by `blueforge-user-setup.service`.
 
-## Usage
+Third-party taps must use Homebrew 6 trust syntax:
 
-### Adding Brewfiles to Your Image
-
-1. Create `.Brewfile` files in this directory
-2. Add your desired packages using Brewfile syntax
-3. Build your image - the Brewfiles will be copied to `/usr/share/ublue-os/homebrew/`
-
-**Example Files in this directory:**
-- [`default.Brewfile`](default.Brewfile) - Essential command-line tools
-- [`development.Brewfile`](development.Brewfile) - Development tools and languages
-- [`fonts.Brewfile`](fonts.Brewfile) - Programming fonts
-
-### Installing Packages from Brewfiles
-
-After booting into your custom image, install packages with:
-
-```bash
-brew bundle --file /usr/share/ublue-os/homebrew/default.Brewfile
+```ruby
+tap "example/tap", trusted: true
 ```
 
-Or use the convenient ujust commands defined in [`custom/ujust/custom-apps.just`](../ujust/custom-apps.just):
+## Optional bundles
+
+- `development.Brewfile` contains host-native build tools for repositories that
+  intentionally do not use a container.
+- `fonts.Brewfile` contains additional Nerd Fonts.
+
+Install them with:
+
 ```bash
-ujust install-default-apps
 ujust install-dev-tools
 ujust install-fonts
 ```
 
-## File Format
+Language runtimes should normally be pinned by a repository with `mise`, `uv`,
+or the language's standard toolchain file instead of being added globally.
 
-Brewfiles use Ruby syntax:
+## Placement rules
 
-```ruby
-# Add a tap (third-party repository)
-tap "homebrew/cask"
+Homebrew is for self-contained user tools. Packages that need systemd services,
+udev rules, kernel modules, D-Bus system services, firmware, PAM, or filesystem
+drivers belong in `build/10-build.sh` as RPMs. Project SDKs belong in the
+project or an optional container.
 
-# Install a formula (CLI tool)
-brew "bat"
-brew "eza"
-brew "ripgrep"
+Validate a changed bundle with:
 
-# Install a cask (GUI application, macOS only)
-cask "visual-studio-code"
+```bash
+brew bundle check --file custom/brew/preinstall.d/blueforge.Brewfile
 ```
-
-## Customization
-
-Edit the existing Brewfiles or create new ones:
-- **[`default.Brewfile`](default.Brewfile)** - Modify for your essential tools
-- **[`development.Brewfile`](development.Brewfile)** - Add your dev stack
-- **[`fonts.Brewfile`](fonts.Brewfile)** - Add preferred fonts
-- **Create new files** - `gaming.Brewfile`, `media.Brewfile`, etc.
-
-When you add new Brewfiles, create corresponding ujust commands in [`custom/ujust/custom-apps.just`](../ujust/custom-apps.just) for easy installation.
-
-## Resources
-
-- [Homebrew Documentation](https://docs.brew.sh/)
-- [Brewfile Documentation](https://github.com/Homebrew/homebrew-bundle)
-- [Bluefin Homebrew Guide](https://docs.projectbluefin.io/administration#homebrew)

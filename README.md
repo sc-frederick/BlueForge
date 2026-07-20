@@ -1,121 +1,171 @@
-# My OS: BlueForge
+# BlueForge
 
-BlueForge is the desktop OS I build for myself: secure, practical, and ready for daily dev work from first boot.
+BlueForge is a developer-focused, customized Bluefin workstation. It keeps the
+atomic, image-based Bluefin system intact while making a normal `~/Work`
+workflow productive from the first login.
 
-It is based on `ghcr.io/ublue-os/bluefin:stable`, but tuned to my workflow: Ghostty-first terminal behavior, security tools I actually use, and runtime app management that stays simple.
+The default is deliberately host-first: clone a repository, open it with Cursor
+or T3 Code, and run Codex, Claude Code, or OpenCode from the repository root.
+Devcontainers and Distrobox are available when a project benefits from them;
+they are not a requirement for every project.
 
 ## What Makes This BlueForge Different?
 
-Compared to stock Bluefin, this is the setup my AEC team wants to live in every day.
-The guiding rule: **native dnf/RPM packages wherever possible** (clean desktop
-integration on bootc), Flatpak/AppImage only as a last resort.
+BlueForge is based on `ghcr.io/ublue-os/bluefin:stable` and adds the following
+opinionated defaults.
 
-### Added Packages (Build-time, dnf/RPM)
+### Added Packages (Build-time)
 
-Baked into the image so the desktop is usable from first boot:
+- **Desktop and security**: Ghostty, 1Password, Mullvad VPN, Brave Origin,
+  Bitwarden, Zoom, and Dropbox integration.
+- **Productivity**: LibreOffice with OOXML defaults and a tabbed interface.
+- **Bundled applications**: Beeper, Typora, and UpNote under immutable `/opt`.
+- **System integration only**: build-time RPMs are reserved for applications,
+  services, and configuration that genuinely belong to the host image.
 
-- **Terminal & security**: Ghostty, 1Password, Mullvad VPN.
-- **Browser**: **Brave Origin** (Brave's minimal build; free on Linux) from Brave's official RPM repo.
-- **Productivity & comms**: **Bitwarden** (vendor RPM), **Zoom** (vendor RPM), **Dropbox** (`nautilus-dropbox` from Dropbox's Fedora repo).
-- **Office suite**: **LibreOffice** (Writer/Calc/Impress/Draw + English langpack + GNOME integration) from Fedora repos, **preconfigured to behave like MS Office** — see below.
-- **Why dnf-first**: Bitwarden and the browser especially integrate far more cleanly as RPMs than as Flatpaks on a bootc system.
+### Added Applications (User runtime)
 
-### Bundled GUI apps (Build-time, `/opt`)
+Bluefin's supported `brew-preinstall.service` installs and reconciles the
+OS-managed toolchain for every user:
 
-These have no Fedora RPM/dnf repo, so the vendor's official "latest" build is baked into `/opt` with a system launcher (refreshed on image rebuild):
+- **Coding agents**: Claude Code and OpenCode through Homebrew; Codex through
+  its official npm package.
+- **Developer interfaces**: Cursor and the T3 Code CLI.
+- **Project tools**: `devcontainer`, `mise`, `direnv`, `uv`, Node, Vite+,
+  GitHub CLI, Neovim, LazyGit, and modern shell utilities.
+- **Optional host build bundle**: CMake, Ninja, ccache, ShellCheck, shfmt,
+  Hyperfine, and Watchexec through `ujust install-dev-tools`.
+- **GUI applications**: the curated Flatpak set in
+  `custom/flatpaks/default.preinstall` is downloaded after installation.
 
-- **Beeper** (unified chat) — official AppImage, extracted to `/opt/beeper`.
-- **Typora** (markdown editor) — official tarball in `/opt/typora`.
-- **UpNote** (note-taking) — official AppImage, extracted to `/opt/upnote`.
-
-### Added Applications (Runtime, auto-installed)
-
-These are managed by **Homebrew** but installed **automatically on first login** — a
-per-user systemd service (`blueforge-brew-bundle.service`) runs `brew bundle` over
-the curated Brewfiles, so the toolchain is there out of the box with nothing to
-type. It re-runs only when the Brewfiles change after an image update, and Bluefin's
-`brew-upgrade` timer keeps installed packages current. The `ujust install-*` recipes
-below remain as manual fallbacks.
-
-- **CLI tools (Homebrew)**: `bat`, `eza`, `fd`, `rg`, `gh`, `git`, `neovim`, `opencode`, `claude-code`, `starship`, `btop`, `tmux`.
-- **JS/TS toolchain**: **Vite+** (`vite-plus`/`vp`) — one CLI that manages the Node runtime (pulled in as a dependency, so node/npm come with it), the per-project package manager, and the frontend toolchain (Vite, Vitest, Oxlint, Oxfmt, Rolldown, tsdown). `ujust install-codex` adds the **OpenAI Codex** CLI on top (Codex is npm-only — Homebrew's `codex` is macOS-only).
-- **GUI apps (Flatpak)**: Aerion (email), GNOME utilities, Pinta, Clapper, Flatseal, Extension Manager, Mission Center, Warehouse, Ignition, Impression, DistroShelf, Bazaar, Refine, plus GTK theme runtimes.
-- **`ujust` installers for licensed/no-repo apps**:
-  - `ujust install-bricscad [rpm]` — layers the account-gated **BricsCAD** RPM via `rpm-ostree`. With no argument it auto-detects the newest `BricsCAD-*.rpm` in `~/Downloads`. The RPM (~1.1GB) is licensed and stays out of the image/repo; activate with your license key on first launch.
-  - `ujust install-codex` — installs the **Codex** CLI on its own.
-
-### LibreOffice configured like MS Office
-
-A system-wide config overlay (`custom/libreoffice/blueforge-msoffice.xcd`) sets:
-
-- **Default save formats** to Microsoft OOXML: `.docx` / `.xlsx` / `.pptx`.
-- **Tabbed "Notebookbar"** ribbon UI (closest to the MS Office ribbon) for Writer/Calc/Impress/Draw.
-- **No "keep in MS format?" nag** on every save.
-
-Users can still change any of this in *Tools > Options*. The Navigator side panel (MS Word's "navigation pane" equivalent) toggles with **F5**.
+User-owned packages are not baked into the bootc filesystem. They are installed
+automatically after first login, remain writable, and follow Bluefin's normal
+Homebrew lifecycle. Authentication for AI tools remains per-user.
 
 ### Removed/Disabled
 
-- **Removed**: `ptyxis` (Ghostty is preferred instead).
-- **Not preinstalled**: Firefox Flatpak is intentionally not in defaults (Brave Origin is the default browser).
-- **Disabled by default**: Cosign signing and SBOM attestation stay off until secrets are configured.
+- **Removed**: BricsCAD and the unsupported `rpm-ostree` layering workflow.
+- **Removed**: the custom Homebrew login service; BlueForge now uses Bluefin's
+  content-addressed `brew-preinstall.service`.
+- **Removed**: Ptyxis, because Ghostty is the preferred terminal.
+- **Not required**: devcontainers are opt-in rather than the default place for
+  source code.
+- **Disabled by default**: image signing and SBOM attestation until their
+  production configuration is enabled.
 
 ### Configuration Changes
 
-- Sets Ghostty as preferred terminal via `/etc/xdg/xdg-terminals.list`.
-- Enables `podman.socket` at build time.
-- Copies and merges custom Brewfiles, `ujust` recipes, Flatpak preinstall manifests, and the LibreOffice config overlay into system locations.
-- Uses an isolated COPR install for Ghostty to avoid repo persistence.
+- Creates `~/Work` for every user without changing existing repositories.
+- Makes Codex, Claude Code, OpenCode, Cursor, and T3 Code available globally.
+- Provides an optional shared `blueforge-firmware` Distrobox and host serial
+  permission helper.
+- Sets Ghostty as the preferred terminal.
+- Enables the Podman socket for rootless container workflows.
+- Keeps third-party repositories temporary during image builds.
 
-_Last updated: 2026-06-16_
+_Last updated: 2026-07-20_
 
-## Build Architecture (Bluefin Pattern)
+## Development Model
 
-BlueForge uses a multi-stage Containerfile:
+The normal workflow remains ordinary Linux development:
 
-1. **`ctx` stage** assembles:
-   - local `build/`
-   - local `custom/`
-   - `ghcr.io/projectbluefin/common` system files
-   - `ghcr.io/ublue-os/brew` system files
-2. **final stage** starts from `ghcr.io/ublue-os/bluefin:stable` and runs `build/10-build.sh` with `/ctx` mounted.
+```bash
+cd ~/Work
+git clone git@github.com:OWNER/PROJECT.git
+cd PROJECT
+codex        # or claude, opencode, cursor, or t3
+```
 
-This keeps customization modular and reproducible while staying aligned with Universal Blue conventions.
+Projects should provide lockfiles, a small `just` command interface, and an
+`AGENTS.md` when agent-specific guidance is useful. Add a devcontainer only for
+conflicting dependencies, multi-service applications, legacy SDKs, or strict CI
+parity.
 
-## BlueForge Personality
+The complete policy is in [Development Workflow](docs/development-workflow.md).
+Firmware and hardware boundaries are covered in
+[Firmware Development](docs/firmware-development.md).
 
-If I had to describe this OS in one line: Bluefin reliability, but with my defaults already made.
+## Application Architecture
 
-- Security-first without being heavy-handed.
-- Terminal-first without abandoning desktop quality-of-life.
-- Runtime apps and tooling so iteration stays fast.
-- Minimal surprises in day-to-day use.
+BlueForge follows this placement rule:
 
-## Who This Is For
+| Need | Location | Lifecycle |
+| --- | --- | --- |
+| Driver, daemon, udev rule, desktop integration | `build/10-build.sh` | Image update |
+| Universal user CLI/IDE | `custom/brew/preinstall.d/` | Automatic first-login reconciliation |
+| Optional host build tool | `custom/brew/*.Brewfile` | Explicit `ujust` command |
+| GUI app from Flathub | `custom/flatpaks/` | Flatpak preinstall |
+| Project runtime or SDK | Repository / devcontainer | Project-defined |
+| Shared mutable SDK | Distrobox | User-managed |
 
-- You want Bluefin stability with curated defaults.
-- You prefer a terminal-first workflow but still want polished desktop UX.
-- You want security tools available immediately.
-- You want most tools managed at runtime instead of rebaking images constantly.
+Do not use `rpm-ostree install`. A system dependency should be baked into the
+image; a user tool should use Homebrew/Flatpak; a project dependency should be
+declared by the project or placed in a container.
 
-## Repo Layout
+## First Login
 
-- `Containerfile` - base image, layered context, and build execution.
-- `build/10-build.sh` - build-time packages (dnf/RPM + `/opt` apps) and system configuration.
-- `custom/brew/*.Brewfile` - runtime CLI/dev/font package bundles.
-- `custom/flatpaks/default.preinstall` - first-boot GUI app manifest.
-- `custom/libreoffice/blueforge-msoffice.xcd` - system-wide LibreOffice MS-Office-like defaults.
-- `custom/ujust/*.just` - user-facing app/system helpers.
-- `.github/workflows/*.yml` - CI build, cleanup, Renovate, and validation workflows.
+Bluefin installs Homebrew, then applies
+`/usr/share/ublue-os/homebrew/preinstall.d/blueforge.Brewfile`. BlueForge's user
+setup creates `~/Work` and installs the official Codex and T3 Code npm packages.
+The npm packages are refreshed at most weekly while ordinary logins take a
+local fast path.
 
-## Customizing
+Check or repair provisioning with:
 
-Where to make changes:
+```bash
+ujust blueforge-dev-status
+ujust install-blueforge-tools
+ujust install-ai-tools
+```
 
-- **Build-time system changes** (dnf/RPM packages, `/opt` apps, system config): edit `build/10-build.sh`.
-- **Runtime CLI tools**: edit `custom/brew/default.Brewfile` and related Brewfiles.
-- **Runtime GUI apps**: edit `custom/flatpaks/default.preinstall`.
-- **User shortcuts**: edit `custom/ujust/custom-apps.just` and `custom/ujust/custom-system.just`.
+Each agent still requires its own login:
+
+```bash
+codex login
+claude auth login
+opencode auth login
+```
+
+## Firmware Workflow
+
+For a convenient shared build environment:
+
+```bash
+ujust configure-firmware-access
+ujust create-firmware-box
+ujust firmware-shell
+```
+
+The box sees the same `~/Work` directory. Prefer containerized builds and
+host-side flashing/debugging. Repositories that need an exact SDK should carry a
+devcontainer and expose stable `just build`, `just test`, and `just flash`
+commands.
+
+## Build Architecture
+
+BlueForge is intentionally a thin downstream layer:
+
+1. `Containerfile` starts from the stable Bluefin image selected by
+   `BASE_IMAGE`.
+2. A scratch context contains only BlueForge's `build/`, `custom/`, and `docs/`.
+3. `build/10-build.sh` installs system applications and copies declarative user
+   configuration into the final image.
+4. `bootc container lint` validates the result.
+
+Bluefin's common desktop and Homebrew resources are inherited from the base;
+BlueForge does not copy a second, potentially mismatched version over them.
+
+## Repository Layout
+
+- `Containerfile` — Bluefin base selection and bootc build.
+- `build/10-build.sh` — build-time packages and system integration.
+- `custom/brew/` — automatic and optional Homebrew bundles.
+- `custom/npm/` — npm tools that lack a supported Linux Homebrew cask.
+- `custom/distrobox/` — optional shared development environments.
+- `custom/flatpaks/` — post-install GUI applications.
+- `custom/ujust/` — user-facing setup and maintenance commands.
+- `docs/` — development and firmware operating model.
+- `.github/workflows/` — validation and image publishing.
 
 ## Local Build and Test
 
@@ -125,116 +175,57 @@ just build-qcow2
 just run-vm-qcow2
 ```
 
-Optional ISO flow:
+Optional installer ISO:
 
 ```bash
 just build-iso
 just run-vm-iso
 ```
 
+Run the fast validations before attempting a full image build:
+
+```bash
+just --list
+shellcheck build/*.sh custom/scripts/*.sh
+python3 -c 'import yaml; yaml.safe_load(open(".github/workflows/build.yml"))'
+```
+
 ## Deploy
 
-BlueForge publishes **two** images from this repo:
-
-- `ghcr.io/sc-frederick/blueforge:stable` — standard (no GPU drivers), for machines
-  without an Nvidia dGPU.
-- `ghcr.io/sc-frederick/blueforge-nvidia:stable` — for Intel + **Nvidia dedicated GPU**
-  machines. Identical to the standard image plus Nvidia's proprietary akmod drivers
-  (inherited from `ghcr.io/ublue-os/bluefin-nvidia:stable`).
-
-Standard:
+Standard image:
 
 ```bash
 sudo bootc switch ghcr.io/sc-frederick/blueforge:stable
 sudo systemctl reboot
 ```
 
-Nvidia:
+Nvidia image:
 
 ```bash
 sudo bootc switch ghcr.io/sc-frederick/blueforge-nvidia:stable
 sudo systemctl reboot
 ```
 
-### Nvidia variant notes
+Installer configuration already points to these images in `iso/iso.toml` and
+`iso/iso-nvidia.toml`.
 
-- **Secure Boot**: The Nvidia kernel modules are signed with Universal Blue's key
-  (inherited from the base image). On Secure Boot machines, enroll that key once with
-  `ujust enroll-secure-boot-key` (reboot and confirm via the blue MOK enrollment screen),
-  or disable Secure Boot. No signing work is needed in this repo — BlueForge layers on
-  top of the prebuilt Nvidia base and never rebuilds the kernel or akmods, so the signed
-  modules carry through unchanged.
-- **Driver choice**: The Nvidia image uses the **proprietary** driver
-  (`bluefin-nvidia`). Universal Blue is standardizing on the open kernel modules
-  (`nvidia-open`) for 2026+ and phasing out the closed driver. For Turing /
-  RTX-20-series or newer GPUs, switching to `ghcr.io/ublue-os/bluefin-nvidia-open:stable`
-  is a one-line change to the `base_image` in the `.github/workflows/build.yml` matrix.
+## Updates
 
-#### Optional: build an Nvidia installer ISO
+- The workflow rebuilds weekly and whenever `main` changes, so the moving
+  Bluefin `stable` base is regularly consumed.
+- Renovate maintains actions and container references through pull requests.
+- Users apply a published image with `ujust update-and-reboot` or Bluefin's
+  normal update UI.
+- Homebrew packages follow Bluefin's managed upgrade lifecycle.
 
-```bash
-BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia:stable just build blueforge-nvidia stable
-just build-iso-nvidia
-```
+## Optional Production Signing
 
-## Optional: Enable Signing (Production)
+Signing is disabled so initial builds work without secrets. To enable it:
 
-Signing is intentionally disabled by default so first builds work immediately.
-
-When ready:
-
-1. Generate keys with `cosign generate-key-pair`.
-2. Add private key contents to GitHub Actions secret `SIGNING_SECRET`.
-3. Commit your real `cosign.pub`.
-4. Uncomment signing steps in `.github/workflows/build.yml`.
-5. (Optional) Uncomment SBOM generation + attestation steps.
+1. Generate a key pair with `cosign generate-key-pair`.
+2. Store the private key as the GitHub Actions secret `SIGNING_SECRET`.
+3. Keep only `cosign.pub` in the repository.
+4. Enable the signing and optional SBOM sections in
+   `.github/workflows/build.yml`.
 
 Never commit `cosign.key`.
-
-## Useful Commands After First Boot
-
-The Homebrew toolchain installs itself on first login (see _Added Applications_
-above). These commands are manual fallbacks — to re-run a bundle yourself, or to
-install the optional bundles:
-
-```bash
-ujust install-default-apps             # CLI tools + Vite+ (runs automatically too)
-ujust install-dev-tools                # optional heavier dev bundle
-ujust install-fonts                    # Nerd Fonts
-ujust install-all-brew                 # all bundles at once
-```
-
-Optional / licensed apps:
-
-```bash
-ujust install-codex                    # OpenAI Codex CLI (npm global)
-ujust install-bricscad                 # licensed; auto-detects RPM in ~/Downloads
-```
-
-Extra helpers:
-
-```bash
-ujust install-jetbrains-toolbox
-ujust configure-dev-groups
-ujust clean-containers
-ujust update-and-reboot
-```
-
-## Validation and CI
-
-PRs run validations for:
-
-- Shell scripts (`shellcheck`)
-- Brewfile syntax
-- Flatpak IDs
-- Justfile syntax
-- Renovate config
-
-Main branch builds and publishes the `stable` image tags.
-
-## Learn More
-
-- Universal Blue: <https://universal-blue.org/>
-- Bluefin: <https://projectbluefin.io>
-- bootc: <https://containers.github.io/bootc/>
-- Flatpak app IDs: <https://flathub.org/>

@@ -16,28 +16,36 @@ source /ctx/build/copr-helpers.sh
 # Enable nullglob for all glob operations to prevent failures on empty matches
 shopt -s nullglob
 
-echo "::group:: Copy Bluefin Config from Common"
-
-# Copy just files from @projectbluefin/common (includes 00-entry.just which imports 60-custom.just)
-mkdir -p /usr/share/ublue-os/just/
-shopt -s nullglob
-cp -r /ctx/oci/common/bluefin/usr/share/ublue-os/just/* /usr/share/ublue-os/just/
-shopt -u nullglob
-
-echo "::endgroup::"
-
 echo "::group:: Copy Custom Files"
 
-# Copy Brewfiles to standard location
-mkdir -p /usr/share/ublue-os/homebrew/
+# Bluefin already provides the Homebrew runtime and brew-preinstall.service.
+# Regular Brewfiles are opt-in; preinstall.d is the OS-managed default set.
+mkdir -p /usr/share/ublue-os/homebrew/preinstall.d
 cp /ctx/custom/brew/*.Brewfile /usr/share/ublue-os/homebrew/
+cp /ctx/custom/brew/preinstall.d/*.Brewfile \
+    /usr/share/ublue-os/homebrew/preinstall.d/
 
 # Consolidate Just Files
+mkdir -p /usr/share/ublue-os/just/
 find /ctx/custom/ujust -iname '*.just' -exec printf "\n\n" \; -exec cat {} \; >> /usr/share/ublue-os/just/60-custom.just
 
 # Copy Flatpak preinstall files
 mkdir -p /etc/flatpak/preinstall.d/
 cp /ctx/custom/flatpaks/*.preinstall /etc/flatpak/preinstall.d/
+
+# BlueForge user setup, shared firmware environment, and offline documentation.
+install -Dm0755 /ctx/custom/scripts/blueforge-user-setup.sh \
+    /usr/libexec/blueforge-user-setup
+install -Dm0644 /ctx/custom/systemd/user/blueforge-user-setup.service \
+    /usr/lib/systemd/user/blueforge-user-setup.service
+install -Dm0644 /ctx/custom/systemd/user-preset/60-blueforge-user-setup.preset \
+    /usr/lib/systemd/user-preset/60-blueforge-user-setup.preset
+install -Dm0644 /ctx/custom/npm/global-packages.txt \
+    /usr/share/blueforge/npm/global-packages.txt
+install -Dm0644 /ctx/custom/distrobox/firmware.ini \
+    /usr/share/blueforge/distrobox/firmware.ini
+mkdir -p /usr/share/doc/blueforge
+cp /ctx/docs/*.md /usr/share/doc/blueforge/
 
 echo "::endgroup::"
 
@@ -73,11 +81,12 @@ rm -f /etc/yum.repos.d/mullvad.repo
 
 # Install Brave Origin browser from Brave's official repository.
 # "Brave Origin" is the de-Googled/minimal Brave build (free on Linux). The repo
-# file ships both `brave-browser` and `brave-origin`; we install Origin per the
-# AEC team's preference. Swap the package name below for `brave-browser` to get
+# file ships both `brave-browser` and `brave-origin`; BlueForge uses Origin as
+# its minimal browser. Swap the package name below for `brave-browser` to get
 # the standard build instead.
 dnf5 config-manager addrepo --from-repofile=https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
 dnf5 install -y brave-origin
+rm -f /etc/yum.repos.d/brave-browser.repo
 
 # Install Bitwarden desktop (password manager).
 # Bitwarden has no dnf repo; this stable redirect always points at the latest
@@ -254,79 +263,6 @@ for ic in /opt/upnote/upnote.png /opt/upnote/.DirIcon \
         break
     fi
 done
-
-echo "::endgroup::"
-
-echo "::group:: Configure automatic Homebrew bundle"
-
-# Bluefin ships Homebrew (brew-setup.service) and keeps it updated
-# (brew-update/brew-upgrade timers), but it does NOT auto-install our Brewfiles —
-# that's normally a manual `ujust`/interactive step. This per-user service runs
-# `brew bundle` on login so the curated toolchain (CLI tools + Vite+) is present
-# out of the box, and re-runs only when the Brewfiles change after an image
-# update (tracked by a content hash). It's idempotent and waits for Homebrew's
-# first-boot setup to finish. Updates of installed packages are still handled by
-# Bluefin's brew-upgrade timer.
-
-install -Dm0755 /dev/stdin /usr/libexec/blueforge-brew-bundle << 'EOF'
-#!/usr/bin/bash
-# Auto-install BlueForge's Homebrew bundles (idempotent). Runs as the user.
-set -uo pipefail
-
-BREW=/home/linuxbrew/.linuxbrew/bin/brew
-
-# Wait (up to ~10 min) for Homebrew to be ready — brew-setup.service extracts it
-# on first boot, which can take a while on the very first login.
-for _ in $(seq 1 60); do
-    [ -x "${BREW}" ] && break
-    sleep 10
-done
-[ -x "${BREW}" ] || exit 0
-
-eval "$("${BREW}" shellenv)"
-
-BREWFILES=(
-    /usr/share/ublue-os/homebrew/default.Brewfile
-    /usr/share/ublue-os/homebrew/fonts.Brewfile
-)
-
-# Only run when something changed (first boot, or Brewfiles updated by an image
-# update) so routine logins stay fast.
-STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/blueforge"
-STAMP="${STATE_DIR}/brew-bundle.sha256"
-mkdir -p "${STATE_DIR}"
-NEW_SHA="$(cat "${BREWFILES[@]}" 2>/dev/null | sha256sum | cut -d' ' -f1)"
-if [ -f "${STAMP}" ] && [ "$(cat "${STAMP}")" = "${NEW_SHA}" ]; then
-    exit 0
-fi
-
-ok=true
-for bf in "${BREWFILES[@]}"; do
-    [ -f "${bf}" ] || continue
-    brew bundle --file "${bf}" || ok=false
-done
-
-# Record the hash only after a fully clean run, so failures retry next login.
-${ok} && printf '%s\n' "${NEW_SHA}" > "${STAMP}"
-EOF
-
-install -Dm0644 /dev/stdin /usr/lib/systemd/user/blueforge-brew-bundle.service << 'EOF'
-[Unit]
-Description=Install BlueForge Homebrew bundles (idempotent)
-ConditionPathExists=/usr/share/ublue-os/homebrew/default.Brewfile
-
-[Service]
-Type=oneshot
-ExecStart=/usr/libexec/blueforge-brew-bundle
-
-[Install]
-WantedBy=default.target
-EOF
-
-# Enable for every user (build-time equivalent of `systemctl --global enable`).
-mkdir -p /usr/lib/systemd/user/default.target.wants
-ln -sf ../blueforge-brew-bundle.service \
-    /usr/lib/systemd/user/default.target.wants/blueforge-brew-bundle.service
 
 echo "::endgroup::"
 

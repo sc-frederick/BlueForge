@@ -2,128 +2,66 @@
 ####################
 ### custom-apps.just
 ####################
-## Runtime app installers: Homebrew bundles, dev toolchains, and licensed/no-repo apps.
+## User-owned applications and developer toolchains.
 
-# Install default applications via Homebrew
-[group('Apps')]
-install-default-apps:
+# Reconcile the complete OS-managed BlueForge toolchain now.
+[group('Development')]
+install-blueforge-tools:
     #!/usr/bin/env bash
-    echo "Installing default applications via Homebrew..."
-    brew bundle --file /usr/share/ublue-os/homebrew/default.Brewfile
+    set -euo pipefail
+    brew bundle --file /usr/share/ublue-os/homebrew/preinstall.d/blueforge.Brewfile
+    /usr/libexec/blueforge-user-setup
 
-# Install development tools via Homebrew
-[group('Apps')]
+# Backward-compatible name for the managed BlueForge toolchain.
+[group('Development')]
+install-default-apps:
+    @ujust install-blueforge-tools
+
+# Reinstall or update Codex, Claude Code, OpenCode, Cursor, and T3 Code.
+[group('Development')]
+install-ai-tools:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    brew bundle --file /usr/share/ublue-os/homebrew/preinstall.d/blueforge.Brewfile
+    npm install --global @openai/codex@latest t3@latest
+    echo "AI tools are installed. Authenticate with codex, claude, opencode, and Cursor as needed."
+
+# Install the optional host-native build tool bundle.
+[group('Development')]
 install-dev-tools:
     #!/usr/bin/env bash
-    echo "Installing development tools via Homebrew..."
+    set -euo pipefail
     brew bundle --file /usr/share/ublue-os/homebrew/development.Brewfile
 
-# Install fonts via Homebrew
+# Install the optional programming font bundle.
 [group('Apps')]
 install-fonts:
     #!/usr/bin/env bash
-    echo "Installing fonts via Homebrew..."
+    set -euo pipefail
     brew bundle --file /usr/share/ublue-os/homebrew/fonts.Brewfile
 
-# Install all Brewfiles at once
-[group('Apps')]
+# Install the managed toolchain plus all optional Brewfiles.
+[group('Development')]
 install-all-brew:
     #!/usr/bin/env bash
-    echo "Installing all applications from Brewfiles..."
-    brew bundle --file /usr/share/ublue-os/homebrew/default.Brewfile
+    set -euo pipefail
+    brew bundle --file /usr/share/ublue-os/homebrew/preinstall.d/blueforge.Brewfile
     brew bundle --file /usr/share/ublue-os/homebrew/development.Brewfile
     brew bundle --file /usr/share/ublue-os/homebrew/fonts.Brewfile
+    /usr/libexec/blueforge-user-setup
 
-# Install JetBrains Toolbox for managing JetBrains IDEs
+# Install JetBrains Toolbox using Bluefin's maintained Linux cask.
 [group('Apps')]
 install-jetbrains-toolbox:
     #!/usr/bin/env bash
-    echo "Installing JetBrains Toolbox..."
-    pushd "$(mktemp -d)"
-    echo "Fetching latest version..."
-    curl -sSfL -o releases.json "https://data.services.jetbrains.com/products/releases?code=TBA&latest=true&type=release"
-    BUILD_VERSION=$(jq -r '.TBA[0].build' ./releases.json)
-    DOWNLOAD_LINK=$(jq -r '.TBA[0].downloads.linux.link' ./releases.json)
-    CHECKSUM_LINK=$(jq -r '.TBA[0].downloads.linux.checksumLink' ./releases.json)
-    echo "Installing JetBrains Toolbox ${BUILD_VERSION}"
-    curl -sSfL -O "${DOWNLOAD_LINK}"
-    curl -sSfL "${CHECKSUM_LINK}" | sha256sum -c
-    tar zxf jetbrains-toolbox-"${BUILD_VERSION}".tar.gz
-    mkdir -p $HOME/.local/share/JetBrains/ToolboxApp/
-    mv jetbrains-toolbox-"${BUILD_VERSION}"/* $HOME/.local/share/JetBrains/ToolboxApp/
-    popd
-    echo "Launching JetBrains Toolbox..."
-    $HOME/.local/share/JetBrains/ToolboxApp/bin/jetbrains-toolbox
-
-# Shortcut for install-jetbrains-toolbox
-[group('Apps')]
-jetbrains-toolbox:
-    @ujust install-jetbrains-toolbox
-
-# Install the OpenAI Codex CLI (npm global; Homebrew's codex is macOS-only)
-[group('Apps')]
-install-codex:
-    #!/usr/bin/env bash
     set -euo pipefail
-    # node/npm are provided by Homebrew (a vite-plus dependency); make sure the
-    # brew environment is on PATH for this non-login shell.
-    [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-    if ! command -v npm &>/dev/null; then
-        echo "npm not found. It ships with vite-plus via Homebrew — make sure the"
-        echo "default bundle has been installed (it runs automatically on first"
-        echo "login, or run 'ujust install-default-apps')."
-        exit 1
-    fi
-    echo "Installing OpenAI Codex CLI..."
-    npm install -g @openai/codex
-    echo "Done. Run 'codex' and sign in with your ChatGPT account or OPENAI_API_KEY."
+    brew tap --trust ublue-os/tap
+    brew install --cask ublue-os/tap/jetbrains-toolbox-linux
 
-# Install BricsCAD from a vendor RPM (account-gated download; license required)
-[group('Apps')]
-install-bricscad RPM_PATH="":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source /usr/lib/ujust/ujust.sh 2>/dev/null || true
-    RPM="{{ RPM_PATH }}"
-    # No path given: try to auto-locate the newest BricsCAD RPM in ~/Downloads.
-    if [ -z "${RPM}" ]; then
-        shopt -s nullglob
-        CANDIDATES=("${HOME}"/Downloads/BricsCAD-*.rpm "${HOME}"/Downloads/bricscad*.rpm)
-        shopt -u nullglob
-        if [ "${#CANDIDATES[@]}" -gt 0 ]; then
-            # Pick the most recently modified match.
-            RPM="$(ls -t "${CANDIDATES[@]}" | head -n1)"
-            echo "Found BricsCAD RPM: ${RPM}"
-        fi
-    fi
-    if [ -z "${RPM}" ]; then
-        echo "BricsCAD is a licensed product and its RPM is behind a Bricsys login."
-        echo ""
-        echo "  1. Download the Linux RPM (Fedora/openSUSE) from:"
-        echo "       https://www.bricsys.com/download"
-        echo "  2. Drop it in ~/Downloads and just run 'ujust install-bricscad',"
-        echo "     or pass the path explicitly, e.g.:"
-        echo "       ujust install-bricscad ~/Downloads/BricsCAD-*.rpm"
-        echo ""
-        echo "It will be layered with 'rpm-ostree install' (a reboot applies it)."
-        echo "After install, launch BricsCAD and enter your license key to activate."
-        exit 0
-    fi
-    if [ ! -f "${RPM}" ]; then
-        echo "File not found: ${RPM}"
-        exit 1
-    fi
-    echo "Layering BricsCAD (${RPM}) — this modifies the base image and needs a reboot..."
-    sudo rpm-ostree install "${RPM}"
-    echo "Done. Reboot to finish: 'systemctl reboot'."
-    echo "After reboot, launch BricsCAD and enter your license key to activate."
-    echo "Note: BricsCAD may need legacy libs (e.g. gtk2). If it fails to launch,"
-    echo "      run 'rpm-ostree install gtk2' and reboot."
-
-# Install a Flatpak application from Flathub
+# Install a Flatpak application from Flathub.
 [group('Apps')]
 install-flatpak APP_ID:
-    #!/usr/bin/bash
-    echo "Installing {{ APP_ID }} from Flathub..."
+    #!/usr/bin/env bash
+    set -euo pipefail
     flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    flatpak install -y flathub {{ APP_ID }}
+    flatpak install -y flathub "{{ APP_ID }}"

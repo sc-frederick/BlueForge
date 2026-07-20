@@ -1,0 +1,13 @@
+[Unit]
+Description=Provision the BlueForge user workspace and npm tools
+Documentation=file:///usr/share/doc/blueforge/development-workflow.md
+After=brew-preinstall.service
+Wants=brew-preinstall.service
+ConditionPathExists=/usr/share/blueforge/npm/global-packages.txt
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/blueforge-user-setup
+
+[Install]
+WantedBy=default.target

@@ -1,240 +1,53 @@
-# ujust - User-facing Just Commands
+# BlueForge `ujust` Commands
 
-This directory contains Just recipe files that will be installed into your custom image and made available to end users via the `ujust` command.
+The build concatenates these recipes into Bluefin's
+`/usr/share/ublue-os/just/60-custom.just`. They are user-facing orchestration;
+they must not mutate the bootc image with `dnf5` or `rpm-ostree`.
 
-## What is ujust?
+## Development
 
-`ujust` is a command that allows users to run predefined tasks on their system. It's built on top of [just](https://github.com/casey/just), a command runner similar to `make` but designed for commands rather than builds.
-
-## How It Works
-
-1. **During Build**: All `.just` files in this directory are consolidated and copied to `/usr/share/ublue-os/just/60-custom.just` in the image
-2. **After Installation**: Users run `ujust` to see available commands
-3. **User Experience**: Simple command interface for system tasks
-
-## File Structure
-
-Create `.just` files in this directory with your custom commands:
-
-```
-custom/ujust/
-├── README.md          # This file
-├── custom-apps.just   # Application installation commands
-└── custom-system.just # System configuration commands
-```
-
-**Example Files in this directory:**
-- [`custom-apps.just`](custom-apps.just) - Application installation commands (Brewfiles, Flatpaks, JetBrains Toolbox)
-- [`custom-system.just`](custom-system.just) - System configuration commands (benchmarks, dev groups, maintenance)
-
-## Example Commands
-
-### Basic Command
-```just
-# Run a system maintenance task
-run-maintenance:
-    echo "Running maintenance..."
-    sudo systemctl restart some-service
-```
-
-### Interactive Command with gum
-```just
-# Configure system setting
-configure-thing:
-    #!/usr/bin/bash
-    source /usr/lib/ujust/ujust.sh
-    echo "Configure thing?"
-    OPTION=$(Choose "Enable" "Disable")
-    if [[ "${OPTION,,}" =~ ^enable ]]; then
-        echo "Enabling..."
-        # your enable logic
-    else
-        echo "Disabling..."
-        # your disable logic
-    fi
-```
-
-### Command with Group
-```just
-# Groups organize commands in ujust help
-[group('Apps')]
-install-brewfile:
-    brew bundle --file /usr/share/ublue-os/homebrew/development.Brewfile
-```
-
-## Best Practices
-
-### Naming Conventions
-- Use lowercase with hyphens: `install-something`
-- Use verb prefixes for clarity:
-  - `install-` - Install something
-  - `configure-` - Configure something pre-installed
-  - `setup-` - Install + configure
-  - `toggle-` - Enable/disable a feature
-  - `fix-` - Apply a fix or workaround
-
-### Command Structure
-```just
-# Brief description of what the command does
-[group('Category')]
-command-name:
-    #!/usr/bin/bash
-    # Use bash shebang for multi-line scripts
-    # Commands go here
-```
-
-### Error Handling
-```just
-install-something:
-    #!/usr/bin/bash
-    set -euo pipefail  # Exit on error, undefined vars, pipe failures
-    # Your commands
-```
-
-### User Prompts
-Use `gum` for interactive prompts (included in Universal Blue images):
-```just
-interactive-command:
-    #!/usr/bin/bash
-    source /usr/lib/ujust/ujust.sh  # Provides Choose() and other helpers
-    OPTION=$(Choose "Option 1" "Option 2" "Cancel")
-    echo "You chose: $OPTION"
-```
-
-## Common Use Cases
-
-### 1. Installing Software via Brewfiles
-```just
-[group('Apps')]
-install-dev-tools:
-    brew bundle --file /usr/share/ublue-os/homebrew/development.Brewfile
-```
-
-**See examples in [`custom-apps.just`](custom-apps.just)** for Brewfile shortcuts.
-
-### 2. System Configuration
-```just
-[group('System')]
-configure-firewall:
-    #!/usr/bin/bash
-    sudo firewall-cmd --permanent --add-service=ssh
-    sudo firewall-cmd --reload
-```
-
-**See examples in [`custom-system.just`](custom-system.just)** for system configuration.
-
-### 3. Development Environment Setup
-```just
-[group('Development')]
-setup-nodejs:
-    #!/usr/bin/bash
-    curl -fsSL https://fnm.vercel.app/install | bash
-    source ~/.bashrc
-    fnm install --lts
-```
-
-### 4. Maintenance Tasks
-```just
-[group('Maintenance')]
-clean-containers:
-    podman system prune -af
-    podman volume prune -f
-```
-
-**See examples in [`custom-system.just`](custom-system.just)** for maintenance tasks.
-
-## Important: Package Installation
-
-**Do not install packages via dnf5/rpm in ujust commands.** Bootc images are immutable and package installation should happen at build time in [`build/10-build.sh`](../../build/10-build.sh).
-
-For runtime package installation, use:
-- **Brewfiles** - Create shortcuts to Brewfiles in [`custom/brew/`](../brew/)
-- **Flatpak** - Install Flatpaks for GUI applications
-- **Containers** - Use toolbox/distrobox for development environments
-
-Example Brewfile shortcut (from [`custom-apps.just`](custom-apps.just)):
-```just
-[group('Apps')]
-install-fonts:
-    brew bundle --file /usr/share/ublue-os/homebrew/fonts.Brewfile
-```
-
-## Available Helpers
-
-Universal Blue images include helpers in `/usr/lib/ujust/ujust.sh`:
-
-- `Choose()` - Present multiple choice menu
-- `Confirm()` - Yes/no prompt
-- Color variables: `${bold}`, `${normal}`, etc.
-
-## Testing Your Commands
-
-Test locally before committing:
-
-1. Build your image: `just build` (see [`Justfile`](../../Justfile))
-2. If on a bootc system: `sudo bootc switch --target localhost/blueforge:stable`
-3. Reboot and test: `ujust your-command`
-
-Or test the just files directly:
 ```bash
-just --justfile custom/ujust/custom-apps.just --list
-just --justfile custom/ujust/custom-apps.just install-something
+ujust setup-workspace          # Ensure ~/Work exists
+ujust blueforge-dev-status     # Check agents, IDEs, and container tools
+ujust install-blueforge-tools  # Reconcile the automatic toolchain now
+ujust install-ai-tools         # Refresh agents, Cursor, and T3 Code
+ujust install-dev-tools        # Optional host-native build tools
+ujust install-fonts            # Optional Nerd Fonts
 ```
 
-## Customization
+## Firmware
 
-**Start by editing the example files:**
-- **[`custom-apps.just`](custom-apps.just)** - Add your application installation commands
-- **[`custom-system.just`](custom-system.just)** - Add your system configuration commands
-
-**Create new files** for different categories:
-- `custom-gaming.just` - Gaming-related commands
-- `custom-media.just` - Media editing workflows
-- `custom-dev.just` - Development environment setups
-
-All `.just` files in this directory are automatically included. See [`build/10-build.sh`](../../build/10-build.sh) for the consolidation logic.
-
-## Groups for Organization
-
-Use groups to categorize commands:
-
-```just
-[group('Apps')]
-install-app:
-    echo "Installing app..."
-
-[group('System')]  
-configure-system:
-    echo "Configuring system..."
-
-[group('Development')]
-setup-dev:
-    echo "Setting up dev environment..."
+```bash
+ujust configure-firmware-access
+ujust create-firmware-box
+ujust firmware-shell
 ```
 
-## Examples from Bluefin
+The shared Distrobox is a convenience environment, not a requirement. A project
+that needs a pinned SDK or CI parity should carry its own devcontainer and expose
+stable commands such as `just build`, `just test`, and `just flash`.
 
-The included files provide starting examples:
-- **[`custom-apps.just`](custom-apps.just)** - Application installation commands
-- **[`custom-system.just`](custom-system.just)** - System configuration commands
+## Maintenance
 
-These files show how to:
-- Create shortcuts to Brewfiles in [`custom/brew/`](../brew/)
-- Install Flatpaks interactively
-- Configure system settings
-- Run maintenance tasks
+```bash
+ujust clean-containers
+ujust update-and-reboot
+```
 
-## Resources
+Container cleanup asks before removing unused rootless Podman data.
 
-- [Just Manual](https://just.systems/man/en/)
-- [Universal Blue Just Documentation](https://universal-blue.org/guide/just/)
-- [Bluefin ujust Commands](https://docs.projectbluefin.io/administration)
-- [gum Documentation](https://github.com/charmbracelet/gum)
+## Authoring rules
 
-## Notes
+- Use a verb-oriented kebab-case recipe name.
+- Add a `[group('...')]` attribute.
+- Use `#!/usr/bin/env bash` and `set -euo pipefail` for multi-line recipes.
+- Quote shell variables and avoid implicit destructive behavior.
+- Install user applications with Homebrew or Flatpak.
+- Put system dependencies in `build/10-build.sh`, not in a `ujust` recipe.
 
-- Commands run with user privileges by default
-- Use `sudo` or `pkexec` when root access needed
-- Consider providing both install and uninstall options
-- Test on a clean system before distributing
-- Document any prerequisites or dependencies
+Validate with:
+
+```bash
+just --unstable --fmt --check -f custom/ujust/custom-apps.just
+just --unstable --fmt --check -f custom/ujust/custom-system.just
+```

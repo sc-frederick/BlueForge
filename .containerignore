@@ -1,0 +1,6 @@
+.git
+.github
+iso
+output
+_build*
+cosign.key

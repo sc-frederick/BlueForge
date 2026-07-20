@@ -1,35 +1,32 @@
-# Repository Setup Checklist
+# BlueForge Release Checklist
 
-## Initial Setup
+## Repository
 
-### 1. Rename Template
-- [x] Update `finpilot` to your repository name (`blueforge`) in: Containerfile, Justfile, README.md, artifacthub-repo.yml, custom/ujust/README.md, .github/workflows/clean.yml
+- [x] BlueForge naming and GHCR paths are set.
+- [x] Standard and Nvidia installer configurations target this repository.
+- [x] Signing is optional and disabled by default.
+- [ ] Protect `main` and require pull-request validation.
+- [ ] Confirm GitHub Actions has package write permission.
 
-### 2. Enable GitHub Actions
-- [x] Settings → Actions → General → Enable workflows
-- [x] Set "Read and write permissions"
-- [x] Confirm active workflows via `gh workflow list`
+## Before a pull request
 
-### 3. First Push
-```bash
-git add .
-git commit -m "feat: initial customization"
-git push origin main
-```
+- [ ] Update README package/configuration notes and date.
+- [ ] Run ShellCheck on `build/*.sh` and `custom/scripts/*.sh`.
+- [ ] Validate modified YAML and TOML files.
+- [ ] Run `just --list` and Justfile format checks.
+- [ ] Review Brewfile and Flatpak validation results.
+- [ ] Use a Conventional Commit title.
 
-### 4. Deploy
-```bash
-sudo bootc switch --transport registry ghcr.io/YOUR_USERNAME/YOUR_REPO:stable
-sudo systemctl reboot
-```
+## Before publishing
 
-## Optional: Production Features
+- [ ] Test the image in a VM or on a non-critical machine.
+- [ ] Verify first-login Homebrew and BlueForge user setup services.
+- [ ] Run `ujust blueforge-dev-status`.
+- [ ] Verify rollback and the standard update path.
 
-### Enable Signing (Recommended)
-```bash
-cosign generate-key-pair
-# Add cosign.key to GitHub Secrets as SIGNING_SECRET
-# Uncomment signing in .github/workflows/build.yml
-# Trigger build: gh workflow run build.yml
-# Verify runs: gh run list --workflow "Build container image" --limit 5
-```
+## Optional production hardening
+
+- [ ] Generate a Cosign key pair.
+- [ ] Store the private key only in `SIGNING_SECRET`.
+- [ ] Enable image signing and optional SBOM attestation.
+- [ ] Never commit `cosign.key`.
