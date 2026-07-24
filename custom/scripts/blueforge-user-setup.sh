@@ -6,6 +6,7 @@ set -euo pipefail
 readonly MANIFEST="/usr/share/blueforge/npm/global-packages.txt"
 readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/blueforge"
 readonly STAMP="${STATE_DIR}/npm-global.sha256"
+readonly CODEX_REMOVAL_STAMP="${STATE_DIR}/codex-removed"
 readonly BREW_BIN="/var/home/linuxbrew/.linuxbrew/bin/brew"
 
 # Preserve the normal workstation model: repositories live directly on the
@@ -30,6 +31,13 @@ command -v npm >/dev/null 2>&1 || {
     echo "blueforge-user-setup: npm is not ready; retrying next login"
     exit 0
 }
+
+# Remove the previously managed Codex package once without affecting later
+# user-owned installations.
+if [[ ! -f "${CODEX_REMOVAL_STAMP}" ]]; then
+    npm uninstall --global @openai/codex
+    touch "${CODEX_REMOVAL_STAMP}"
+fi
 
 current_hash="$(sha256sum "${MANIFEST}" | cut -d' ' -f1)"
 

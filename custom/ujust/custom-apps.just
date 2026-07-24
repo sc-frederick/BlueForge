@@ -17,14 +17,15 @@ install-blueforge-tools:
 install-default-apps:
     @ujust install-blueforge-tools
 
-# Reinstall or update Codex, Claude Code, OpenCode, Cursor, and T3 Code.
+# Reinstall or update OpenCode and T3 Code.
 [group('Development')]
 install-ai-tools:
     #!/usr/bin/env bash
     set -euo pipefail
     brew bundle --file /usr/share/ublue-os/homebrew/preinstall.d/blueforge.Brewfile
-    npm install --global @openai/codex@latest t3@latest
-    echo "AI tools are installed. Authenticate with codex, claude, opencode, and Cursor as needed."
+    /usr/libexec/blueforge-user-setup
+    npm install --global t3@latest
+    echo "AI tools are installed. Authenticate with OpenCode as needed."
 
 # Install the optional host-native build tool bundle.
 [group('Development')]

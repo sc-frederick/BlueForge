@@ -5,8 +5,8 @@ BlueForge is a thin, developer-focused downstream of
 atomic bootc system intact while making a normal `~/Work` workflow productive
 from the first login.
 
-The default is host-first: clone a repository under `~/Work`, open it with Cursor
-or T3 Code, and run Codex, Claude Code, or OpenCode from the repository root.
+The default is host-first: clone a repository under `~/Work`, then run OpenCode
+or T3 Code from the repository root.
 Devcontainers and Distrobox are available when a project benefits from them;
 they are not required for every repository.
 
@@ -49,19 +49,18 @@ installs npm-only tools.
 
 **Homebrew (automatic):**
 
-- Coding agents: Claude Code, OpenCode
-- IDE: Cursor (ublue Linux cask)
+- Coding agent: OpenCode
 - Project tools: `devcontainer`, `mise`, `direnv`, `uv`, Node, Vite+, GitHub CLI,
   Neovim, LazyGit
 - Shell utilities: `bat`, `eza`, `fd`, `ripgrep`
 
 **npm (automatic, weekly refresh):**
 
-- Codex (`@openai/codex`)
 - T3 Code (`t3`)
 
 User-owned packages stay writable and follow Bluefin's Homebrew lifecycle.
 Authentication for AI tools remains per-user.
+Cursor, Codex, and Claude Code are not provisioned by default.
 
 ### Optional user bundles
 
@@ -95,7 +94,7 @@ _Last updated: 2026-07-23_
 cd ~/Work
 git clone git@github.com:OWNER/PROJECT.git
 cd PROJECT
-codex        # or claude, opencode, cursor, or t3
+opencode     # or t3
 ```
 
 Projects should provide lockfiles, a small `just` interface (`setup`, `dev`,
@@ -126,7 +125,7 @@ container.
 
 1. Bluefin installs Homebrew and applies
    `/usr/share/ublue-os/homebrew/preinstall.d/blueforge.Brewfile`.
-2. `blueforge-user-setup` creates `~/Work` and installs Codex + T3 Code.
+2. `blueforge-user-setup` creates `~/Work` and installs T3 Code.
 3. Moving npm packages refresh at most weekly; ordinary logins take a local fast
    path.
 
@@ -138,11 +137,9 @@ ujust install-blueforge-tools
 ujust install-ai-tools
 ```
 
-Authenticate each agent separately:
+Authenticate OpenCode separately:
 
 ```bash
-codex login
-claude auth login
 opencode auth login
 ```
 
@@ -244,7 +241,7 @@ Installer configuration already points at these images in `iso/iso.toml` and
   `stable` base is regularly consumed.
 - Renovate maintains actions and container references through pull requests.
 - Homebrew packages follow Bluefin's managed upgrade lifecycle.
-- npm tools (`codex`, `t3`) refresh at most weekly via user setup.
+- npm tools (`t3`) refresh at most weekly via user setup.
 
 ## Optional Production Signing
 

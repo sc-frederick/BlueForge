@@ -18,7 +18,7 @@ blueforge-dev-status:
     #!/usr/bin/env bash
     set -u
     printf 'Workspace: %s\n\n' "${HOME}/Work"
-    for tool in git gh podman distrobox devcontainer mise direnv cursor codex claude opencode t3; do
+    for tool in git gh podman distrobox devcontainer mise direnv opencode t3; do
         if command -v "${tool}" >/dev/null 2>&1; then
             printf '  [ok]      %-14s %s\n' "${tool}" "$(command -v "${tool}")"
         else

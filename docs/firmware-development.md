@@ -57,9 +57,8 @@ Use a repository-local devcontainer instead of the shared Distrobox when:
 - two firmware projects need incompatible toolchains;
 - setup requires several services or complex environment variables.
 
-Keep the source in `~/Work` even then. Cursor can reopen that directory in its
-container, while host-side Codex, Claude Code, OpenCode, or T3 Code can call the
-same `just` wrappers.
+Keep the source in `~/Work` even then. Host-side OpenCode or T3 Code can call the
+same `just` wrappers while the build runs in the container.
 
 ## Hardware boundary
 

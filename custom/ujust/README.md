@@ -8,9 +8,9 @@ they must not mutate the bootc image with `dnf5` or `rpm-ostree`.
 
 ```bash
 ujust setup-workspace          # Ensure ~/Work exists
-ujust blueforge-dev-status     # Check agents, IDEs, and container tools
+ujust blueforge-dev-status     # Check development and container tools
 ujust install-blueforge-tools  # Reconcile the automatic toolchain now
-ujust install-ai-tools         # Refresh agents, Cursor, and T3 Code
+ujust install-ai-tools         # Refresh OpenCode and T3 Code
 ujust install-dev-tools        # Optional host-native build tools
 ujust install-fonts            # Optional Nerd Fonts
 ```
