@@ -15,9 +15,9 @@ Files under `preinstall.d/` are copied to
 - exits quickly when nothing changed.
 
 `preinstall.d/blueforge.Brewfile` is the default developer workstation. It
-contains universal CLI tools, Claude Code, OpenCode, Cursor, Node, and the
-devcontainer tooling. Codex and T3 Code are provisioned from their official npm
-packages by `blueforge-user-setup.service`.
+contains universal CLI tools, OpenCode, Node, and the devcontainer tooling. T3
+Code is provisioned from its official npm package by
+`blueforge-user-setup.service`.
 
 Third-party taps must use Homebrew 6 trust syntax:
 

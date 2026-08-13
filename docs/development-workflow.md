@@ -10,12 +10,12 @@ or reproducibility provides a concrete benefit.
 cd ~/Work
 git clone git@github.com:OWNER/PROJECT.git
 cd PROJECT
-codex        # or claude, opencode, cursor, or t3
+opencode     # or t3
 ```
 
-Codex, Claude Code, OpenCode, Cursor, and T3 Code are provisioned for the user.
-They are not duplicated inside every project container. Authentication is still
-per-user and intentionally remains outside the OS image.
+OpenCode and T3 Code are provisioned for the user. They are not duplicated
+inside every project container. Authentication is still per-user and
+intentionally remains outside the OS image.
 
 ## The three layers
 
@@ -73,7 +73,7 @@ Bluefin's `brew-preinstall.service` reconciles
 `/usr/share/ublue-os/homebrew/preinstall.d/blueforge.Brewfile`. BlueForge then:
 
 1. creates `~/Work`;
-2. installs the official Codex and T3 Code npm packages;
+2. installs the official T3 Code npm package;
 3. refreshes moving npm packages at most once per week.
 
 Inspect the result with:

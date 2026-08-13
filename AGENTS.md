@@ -75,7 +75,7 @@ Never run `dnf5` or `rpm-ostree` from a `ujust` recipe.
 ## Development model
 
 - Repositories live directly under `~/Work`.
-- Codex, Claude Code, OpenCode, Cursor, and T3 Code remain host/user tools.
+- OpenCode and T3 Code remain host/user tools.
 - Devcontainers are opt-in for dependency conflicts, multi-service stacks,
   legacy SDKs, or CI parity.
 - Firmware builds may run in a container while serial access, udev rules,

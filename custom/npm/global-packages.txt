@@ -1,6 +1,3 @@
 # npm packages provisioned for every BlueForge user.
-# Codex's official package and T3 Code's supported Linux CLI are distributed
-# through npm. Keeping Codex here also upgrades existing BlueForge npm installs
-# without a conflicting Homebrew cask migration.
-@openai/codex@latest
+# T3 Code's supported Linux CLI is distributed through npm.
 t3@latest
