@@ -1,7 +1,7 @@
 export image_name := env("IMAGE_NAME", "blueforge")
 export default_tag := env("DEFAULT_TAG", "stable")
 # Base image to build FROM. Override for the Nvidia variant, e.g.:
-#   BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia:stable just build blueforge-nvidia stable
+#   BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia-open:stable just build blueforge-nvidia stable
 export base_image := env("BASE_IMAGE", "ghcr.io/ublue-os/bluefin:stable")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest@sha256:903c01d110b8533f8891f07c69c0ba2377f8d4bc7e963311082b7028c04d529d")
 
@@ -211,7 +211,7 @@ build-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_build
 build-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "iso" "iso/iso.toml")
 
 # Build an installer ISO for the Nvidia variant (first-boot switches to blueforge-nvidia)
-# Build the image first: BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia:stable just build blueforge-nvidia stable
+# Build the image first: BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia-open:stable just build blueforge-nvidia stable
 [group('Build Virtual Machine Image')]
 build-iso-nvidia $target_image=("localhost/" + image_name + "-nvidia") $tag=default_tag: && (_build-bib target_image tag "iso" "iso/iso-nvidia.toml")
 

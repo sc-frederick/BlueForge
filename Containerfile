@@ -25,7 +25,7 @@ COPY docs /docs
 
 # Base Image - Bluefin GNOME included
 # Default is the non-Nvidia Bluefin base. CI (build.yml matrix) and the Justfile
-# override BASE_IMAGE to ghcr.io/ublue-os/bluefin-nvidia:stable to produce the
+# override BASE_IMAGE to ghcr.io/ublue-os/bluefin-nvidia-open:stable to produce the
 # blueforge-nvidia image. BASE_IMAGE is declared at the top of this file.
 FROM ${BASE_IMAGE}
 

@@ -15,7 +15,13 @@ Two published images are built every week and on every `main` change:
 | Image | Base | Use when |
 | --- | --- | --- |
 | `ghcr.io/sc-frederick/blueforge:stable` | `bluefin:stable` | Default workstation |
-| `ghcr.io/sc-frederick/blueforge-nvidia:stable` | `bluefin-nvidia:stable` | Closed Nvidia driver |
+| `ghcr.io/sc-frederick/blueforge-nvidia:stable` | `bluefin-nvidia-open:stable` | Nvidia Turing and newer GPUs |
+
+The Nvidia variant uses Nvidia's open kernel modules and requires Turing or
+newer hardware, such as GeForce GTX 16-series or RTX cards. For older Nvidia
+GPUs, use the standard image with its built-in kernel drivers. Bluefin has
+[retired its closed-driver images](https://docs.projectbluefin.io/blog/tags/video/#removal-notices).
+The published BlueForge image name remains `blueforge-nvidia`.
 
 ## What Makes This BlueForge Different?
 
@@ -79,6 +85,8 @@ DistroShelf, and Bazaar after installation.
 
 ### Configuration and workflow defaults
 
+- Uses maintained Bluefin stable bases for both variants so Nvidia workstations
+  receive current system and driver updates instead of an abandoned base image.
 - Creates `~/Work` for every user without touching existing repositories.
 - Ships offline copies of the development docs under `/usr/share/doc/blueforge`.
 - Provides an optional shared `blueforge-firmware` Distrobox and a host serial
@@ -86,7 +94,7 @@ DistroShelf, and Bazaar after installation.
 - Image signing and SBOM attestation stay disabled until production secrets are
   configured.
 
-_Last updated: 2026-07-23_
+_Last updated: 2026-10-12_
 
 ## Development Model
 
@@ -191,10 +199,10 @@ just build-qcow2
 just run-vm-qcow2
 ```
 
-Nvidia variant:
+Nvidia variant for Turing and newer GPUs:
 
 ```bash
-BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia:stable just build blueforge-nvidia stable
+BASE_IMAGE=ghcr.io/ublue-os/bluefin-nvidia-open:stable just build blueforge-nvidia stable
 ```
 
 Optional installer ISO:
@@ -224,7 +232,7 @@ sudo bootc switch ghcr.io/sc-frederick/blueforge:stable
 sudo systemctl reboot
 ```
 
-Nvidia image:
+Nvidia image for Turing and newer GPUs:
 
 ```bash
 sudo bootc switch ghcr.io/sc-frederick/blueforge-nvidia:stable
